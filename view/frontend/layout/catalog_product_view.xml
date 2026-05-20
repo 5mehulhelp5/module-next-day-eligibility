@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="product.info.additional">
+            <block class="ETechFlow\NextDayEligibility\Block\Product\NextDayBadge"
+                   name="etechflow.nextday.badge"
+                   template="ETechFlow_NextDayEligibility::product/next-day-badge.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

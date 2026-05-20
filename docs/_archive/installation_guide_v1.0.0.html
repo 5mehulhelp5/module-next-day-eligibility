@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Next Day Eligibility for Magento 2 — Installation Guide</title>
+<style>
+  :root {
+    --brand: #5e3a8c;
+    --brand-dark: #3d2459;
+    --brand-light: #f3eef9;
+    --brand-accent: #8b5cf6;
+    --ink: #1f2937;
+    --ink-strong: #0f172a;
+    --muted: #6b7280;
+    --rule: #e2e8f0;
+  }
+
+  @page {
+    size: A4;
+    margin: 22mm 18mm 22mm 18mm;
+    @bottom-left { content: "ETechFlow • Next Day Eligibility for Magento 2"; font-size: 9pt; color: #6b7280; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    @bottom-right { content: counter(page) " / " counter(pages); font-size: 9pt; color: #6b7280; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  }
+  @page :first { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 0;
+  }
+  h1, h2, h3, h4 { font-weight: 700; color: var(--ink-strong); }
+  h1 { font-size: 22pt; margin: 0 0 8pt; letter-spacing: -0.5pt; }
+  h2 { font-size: 16pt; margin: 24pt 0 8pt; padding-bottom: 4pt; border-bottom: 2pt solid var(--brand); color: var(--brand-dark); }
+  h3 { font-size: 13pt; margin: 16pt 0 6pt; color: var(--brand); }
+  h4 { font-size: 11.5pt; margin: 12pt 0 4pt; color: #334155; }
+  p  { margin: 0 0 8pt; }
+  ul, ol { margin: 6pt 0 10pt; padding-left: 20pt; }
+  li { margin-bottom: 4pt; }
+  strong { color: var(--ink-strong); }
+  a { color: var(--brand); text-decoration: none; }
+
+  code, pre { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 10pt; }
+  code { background: var(--brand-light); padding: 1pt 5pt; border-radius: 3pt; color: var(--brand-dark); }
+  pre {
+    background: #1e1530; color: #e2e8f0; padding: 12pt 14pt;
+    border-radius: 6pt; line-height: 1.45;
+    margin: 8pt 0 14pt; page-break-inside: avoid;
+    border-left: 3pt solid var(--brand-accent);
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 10pt 0 14pt; font-size: 10.5pt; page-break-inside: avoid; }
+  th, td { text-align: left; padding: 8pt 10pt; border: 1pt solid var(--rule); vertical-align: top; }
+  th { background: var(--brand-light); color: var(--brand-dark); font-weight: 700; }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  /* Cover page */
+  .cover {
+    height: 297mm;
+    padding: 0;
+    background: linear-gradient(160deg, var(--brand-dark) 0%, var(--brand) 55%, #7c4dab 100%);
+    color: #ffffff;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    top: -120mm; right: -90mm;
+    width: 280mm; height: 280mm;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover::after {
+    content: "";
+    position: absolute;
+    bottom: -80mm; left: -60mm;
+    width: 200mm; height: 200mm;
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .cover-inner {
+    position: relative;
+    z-index: 2;
+    padding: 35mm 22mm 30mm;
+    height: 100%;
+  }
+  .cover .logo-block {
+    display: flex;
+    align-items: center;
+    gap: 14pt;
+    margin-bottom: 35mm;
+  }
+  .cover .logo-block img {
+    width: 60pt;
+    height: 60pt;
+    border-radius: 12pt;
+    background: rgba(255,255,255,0.08);
+    padding: 4pt;
+  }
+  .cover .logo-block .wordmark {
+    font-size: 14pt;
+    letter-spacing: 6pt;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .cover .pill {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    color: #ffffff;
+    padding: 5pt 12pt;
+    border-radius: 20pt;
+    font-size: 10pt;
+    letter-spacing: 1.5pt;
+    text-transform: uppercase;
+    margin-bottom: 18pt;
+    border: 0.5pt solid rgba(255,255,255,0.25);
+  }
+  .cover h1 {
+    font-size: 42pt;
+    color: #ffffff;
+    line-height: 1.1;
+    margin: 0 0 16pt;
+    letter-spacing: -1pt;
+  }
+  .cover .subtitle {
+    font-size: 17pt;
+    color: rgba(255,255,255,0.78);
+    font-weight: 300;
+    margin-bottom: 35pt;
+    max-width: 130mm;
+  }
+  .cover .meta {
+    border-top: 1pt solid rgba(255,255,255,0.22);
+    padding-top: 16pt;
+    font-size: 11pt;
+    color: rgba(255,255,255,0.85);
+    max-width: 140mm;
+  }
+  .cover .meta p { margin: 0 0 6pt; }
+  .cover .meta strong { color: #ffffff; display: inline-block; width: 95pt; font-weight: 600; }
+  .cover .footer-note {
+    position: absolute;
+    bottom: 22mm; left: 22mm; right: 22mm;
+    font-size: 9.5pt;
+    color: rgba(255,255,255,0.65);
+    border-top: 1pt solid rgba(255,255,255,0.15);
+    padding-top: 10pt;
+    letter-spacing: 0.3pt;
+  }
+
+  /* Table of Contents */
+  .toc { page-break-after: always; }
+  .toc h2 { color: var(--brand-dark); }
+  .toc ol { list-style: none; padding-left: 0; counter-reset: toc; }
+  .toc ol li {
+    counter-increment: toc;
+    padding: 8pt 0;
+    border-bottom: 1pt dotted #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .toc ol li::before {
+    content: counter(toc, decimal-leading-zero) ".";
+    color: var(--brand);
+    font-weight: 700;
+    margin-right: 12pt;
+    min-width: 24pt;
+  }
+  .toc ol li .title { flex: 1; }
+  .toc ol li .page { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 10pt; }
+
+  /* Callouts */
+  .callout {
+    border-left: 4pt solid;
+    padding: 10pt 14pt;
+    margin: 10pt 0 14pt;
+    border-radius: 0 4pt 4pt 0;
+    page-break-inside: avoid;
+  }
+  .callout.info { background: #eef2ff; border-left-color: var(--brand); color: var(--brand-dark); }
+  .callout.warn { background: #fffbeb; border-left-color: #f59e0b; color: #92400e; }
+  .callout.success { background: #f0fdf4; border-left-color: #16a34a; color: #166534; }
+  .callout strong { color: inherit; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* Step cards */
+  .step {
+    background: #f8fafc;
+    border: 1pt solid var(--rule);
+    border-left: 3pt solid var(--brand-accent);
+    border-radius: 5pt;
+    padding: 12pt 14pt;
+    margin: 10pt 0 14pt;
+    page-break-inside: avoid;
+  }
+  .step-number {
+    display: inline-block;
+    width: 22pt;
+    height: 22pt;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #ffffff;
+    font-weight: 700;
+    text-align: center;
+    line-height: 22pt;
+    margin-right: 8pt;
+    font-size: 11pt;
+  }
+  .step-title { font-weight: 700; color: var(--ink-strong); font-size: 12pt; margin-bottom: 4pt; }
+  .step-body { margin-top: 6pt; }
+  .step-body p:first-child { margin-top: 0; }
+  .step-body p:last-child { margin-bottom: 0; }
+
+  /* Section breaks */
+  section { page-break-inside: auto; }
+  section.page { page-break-before: always; }
+  hr { border: none; border-top: 1pt solid var(--rule); margin: 20pt 0; }
+
+  /* Footer card */
+  .footer-card {
+    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 100%);
+    color: #ffffff;
+    padding: 22pt 24pt;
+    border-radius: 8pt;
+    margin-top: 18pt;
+  }
+  .footer-card h3 { color: #ffffff; margin: 0 0 10pt; font-size: 15pt; }
+  .footer-card a { color: #fde68a; }
+  .footer-card .row { display: flex; gap: 20pt; }
+  .footer-card .row > div { flex: 1; }
+  .footer-card .row > div p:first-child { color: rgba(255,255,255,0.7); font-size: 9.5pt; text-transform: uppercase; letter-spacing: 1.2pt; margin-bottom: 4pt; }
+  .footer-card .row > div p:last-child { color: #ffffff; }
+
+  /* Screenshot frame */
+  .screenshot {
+    margin: 10pt 0 16pt;
+    border: 1pt solid var(--rule);
+    border-radius: 6pt;
+    overflow: hidden;
+    box-shadow: 0 2pt 8pt rgba(94, 58, 140, 0.08);
+    page-break-inside: avoid;
+    background: #ffffff;
+  }
+  .screenshot img { display: block; width: 100%; height: auto; }
+  .screenshot .caption {
+    background: var(--brand-light);
+    color: var(--brand-dark);
+    font-size: 9.5pt;
+    padding: 7pt 12pt;
+    border-top: 1pt solid var(--rule);
+    font-weight: 600;
+  }
+
+  /* Header strip on regular pages */
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+    margin-bottom: 14pt;
+    padding-bottom: 8pt;
+    border-bottom: 1pt solid var(--rule);
+  }
+  .page-header img { width: 22pt; height: 22pt; border-radius: 5pt; }
+  .page-header .title { font-size: 10pt; color: var(--brand); font-weight: 600; letter-spacing: 1.5pt; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-inner">
+    <div class="logo-block">
+      <img src="../../_shared_assets/logo.png" alt="eTechFlow">
+      <div class="wordmark">ETECHFLOW</div>
+    </div>
+
+    <div class="pill">Magento 2 Extension</div>
+    <h1>Next Day<br>Eligibility</h1>
+    <div class="subtitle">Stock-driven next-day shipping eligibility with drop-ship supplier exception.</div>
+
+    <div class="meta">
+      <p><strong>Module</strong>ETechFlow_NextDayEligibility</p>
+      <p><strong>Version</strong>1.0.0</p>
+      <p><strong>Magento</strong>Open Source &amp; Adobe Commerce 2.4.4 – 2.4.8</p>
+      <p><strong>PHP</strong>8.1 / 8.2 / 8.3</p>
+      <p><strong>License</strong>Proprietary</p>
+    </div>
+
+    <div class="footer-note">
+      eTechFlow Pvt. Ltd. &nbsp;•&nbsp; info@etechflow.com &nbsp;•&nbsp; https://etechflow.com
+    </div>
+  </div>
+</div>
+
+<section class="toc">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Installation Guide</span>
+  </div>
+  <h2>Contents</h2>
+  <ol>
+    <li><span class="title">About this Extension</span><span class="page">3</span></li>
+    <li><span class="title">System Requirements</span><span class="page">3</span></li>
+    <li><span class="title">Pre-Installation Checklist</span><span class="page">4</span></li>
+    <li><span class="title">Installation — Method A: Manual Upload</span><span class="page">5</span></li>
+    <li><span class="title">Installation — Method B: Composer</span><span class="page">6</span></li>
+    <li><span class="title">Post-Installation Verification</span><span class="page">7</span></li>
+    <li><span class="title">Configuration</span><span class="page">8</span></li>
+    <li><span class="title">Using the Extension</span><span class="page">10</span></li>
+    <li><span class="title">Uninstallation</span><span class="page">12</span></li>
+    <li><span class="title">Troubleshooting</span><span class="page">13</span></li>
+    <li><span class="title">Support &amp; Contact</span><span class="page">14</span></li>
+  </ol>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>1. About this Extension</h2>
+  <p><strong>Next Day Eligibility</strong> automates a Yes/No <em>Next Day Eligible</em> attribute on every product based on real-time stock quantity, and restricts configured next-day shipping methods at checkout when any cart item is not eligible.</p>
+  <p>Products fulfilled by a drop-ship supplier can be exempted from this restriction via a per-product <strong>Drop-Ship Eligible</strong> flag — even when local stock is zero, those products remain next-day eligible because the supplier ships directly.</p>
+
+  <div class="screenshot">
+    <img src="../../_shared_assets/product-eligible.png" alt="Product page showing the green Next Day Eligible badge">
+    <div class="caption">Storefront product detail page — the green “Next Day Eligible” badge is rendered just below the price.</div>
+  </div>
+
+  <h3>Key Features</h3>
+  <ul>
+    <li>Auto-managed <code>next_day_eligible</code> attribute, recomputed on stock save and product save</li>
+    <li>Per-product <code>drop_ship_eligible</code> override for supplier-shipped goods</li>
+    <li>Green / grey eligibility badge on the product detail page</li>
+    <li>Configurable shipping method codes blocked at checkout when any cart item is ineligible</li>
+    <li>Multi-shipping aware — eligibility evaluated per shipping address</li>
+    <li>Configurable, grouped, and bundle parents propagate from their child items</li>
+    <li>Per-store-view configurable badge labels and method codes</li>
+  </ul>
+
+  <h2>2. System Requirements</h2>
+  <table>
+    <tr><th>Component</th><th>Supported Version</th></tr>
+    <tr><td>Magento Open Source / Adobe Commerce</td><td>2.4.4, 2.4.5, 2.4.6, 2.4.7, 2.4.8</td></tr>
+    <tr><td>PHP</td><td>8.1, 8.2, 8.3</td></tr>
+    <tr><td>Composer</td><td>2.x (only required for Method B)</td></tr>
+    <tr><td>MySQL / MariaDB</td><td>As required by your Magento version</td></tr>
+    <tr><td>Search engine</td><td>OpenSearch / Elasticsearch (no extra config)</td></tr>
+  </table>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>3. Pre-Installation Checklist</h2>
+  <p>Complete these steps before extracting any files. They protect your store from broken caches and partial installs.</p>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">1</span>Back up your Magento installation</div>
+    <div class="step-body">
+      <p>Take a full backup of <code>app/code</code>, <code>app/etc</code>, and your database. The Adobe Commerce backup tool, mysqldump, or your hosting provider’s snapshot tool all work.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">2</span>Set Magento to developer or default mode</div>
+    <div class="step-body">
+      <p>Production mode requires extra steps for static content deployment. Switch to developer mode for installation:</p>
+<pre><code>php bin/magento deploy:mode:show
+php bin/magento deploy:mode:set developer</code></pre>
+      <p>You can return to production mode after installation completes.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">3</span>Disable cache before installing</div>
+    <div class="step-body">
+      <p>Disable all caches via the admin: <strong>System → Tools → Cache Management</strong>, select all, and choose <em>Disable</em>. Or run:</p>
+<pre><code>php bin/magento cache:disable</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">4</span>Verify maintenance access</div>
+    <div class="step-body">
+      <p>Make sure you have SSH or terminal access to the server that runs Magento. Manual upload alone is not sufficient — you must run CLI commands to enable the module.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>Note:</strong> Running <code>setup:upgrade</code> while customers are checking out can cause errors on their carts. Schedule the install during a low-traffic window or enable maintenance mode (<code>php bin/magento maintenance:enable</code>).</p>
+  </div>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>4. Installation — Method A: Manual Upload</h2>
+  <p>Use this method if you received the module as a <code>.zip</code> archive (purchased directly from eTechFlow or transferred manually).</p>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">1</span>Unpack the archive</div>
+    <div class="step-body">
+      <p>Extract <code>etechflow-module-next-day-eligibility-1.0.0.zip</code> on your local machine. Inside you will find the <code>ETechFlow/NextDayEligibility/</code> folder.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">2</span>Create the module directory on your server</div>
+    <div class="step-body">
+      <p>SSH to your Magento server. From the Magento root:</p>
+<pre><code>mkdir -p app/code/ETechFlow</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">3</span>Upload the extension files</div>
+    <div class="step-body">
+      <p>Upload the <code>NextDayEligibility</code> folder (everything you extracted) into <code>app/code/ETechFlow/</code>. Use SFTP, rsync, or your IDE’s deploy feature.</p>
+      <p>Final path on the server should be:</p>
+<pre><code>app/code/ETechFlow/NextDayEligibility/registration.php
+app/code/ETechFlow/NextDayEligibility/etc/module.xml
+... (rest of the module files)</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">4</span>Enable the module</div>
+    <div class="step-body">
+      <p>From the Magento root, run:</p>
+<pre><code>php bin/magento module:enable ETechFlow_NextDayEligibility
+php bin/magento setup:upgrade
+php bin/magento setup:di:compile
+php bin/magento setup:static-content:deploy -f
+php bin/magento cache:flush</code></pre>
+      <p>For multi-language stores, append every locale code to the deploy command, e.g. <code>setup:static-content:deploy -f en_US en_GB</code>.</p>
+    </div>
+  </div>
+
+  <div class="callout success">
+    <p><strong>Done.</strong> Skip ahead to section 6 (Post-Installation Verification).</p>
+  </div>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>5. Installation — Method B: Composer</h2>
+  <p>Use this method if you have access to a Composer repository hosting the module (private Satis, Packagist, or eTechFlow’s repository).</p>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">1</span>Add the repository (skip if already configured)</div>
+    <div class="step-body">
+<pre><code>composer config repositories.etechflow composer https://repo.etechflow.com</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">2</span>Require the package</div>
+    <div class="step-body">
+<pre><code>composer require etechflow/module-next-day-eligibility:^1.0</code></pre>
+      <p>Composer will prompt for credentials if the repository is private. Use the access keys provided with your purchase.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-title"><span class="step-number">3</span>Run the same enable / upgrade commands</div>
+    <div class="step-body">
+<pre><code>php bin/magento module:enable ETechFlow_NextDayEligibility
+php bin/magento setup:upgrade
+php bin/magento setup:di:compile
+php bin/magento setup:static-content:deploy -f
+php bin/magento cache:flush</code></pre>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <p><strong>Tip:</strong> If you originally use Magento Marketplace access keys, place them in <code>auth.json</code> at your Magento root before running <code>composer require</code>.</p>
+  </div>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>6. Post-Installation Verification</h2>
+  <p>After installation, confirm the module is loaded and working before continuing to configuration.</p>
+
+  <h3>6.1 Verify the module is enabled</h3>
+<pre><code>php bin/magento module:status ETechFlow_NextDayEligibility
+# Expected output: Module is enabled</code></pre>
+
+  <h3>6.2 Verify the data patches ran</h3>
+  <p>Two product attributes should now exist: <code>next_day_eligible</code> and <code>drop_ship_eligible</code>. Check via SQL:</p>
+<pre><code>SELECT attribute_code FROM eav_attribute
+ WHERE attribute_code IN ('next_day_eligible', 'drop_ship_eligible');</code></pre>
+
+  <h3>6.3 Visit any product detail page</h3>
+  <p>You should see a <strong>green “Next Day Eligible”</strong> or <strong>grey “Standard Delivery Only”</strong> badge directly below the price. If the badge does not appear, hard-refresh the page (the static content may be cached) and verify the cache was flushed.</p>
+
+  <h2>7. Configuration</h2>
+  <p>Configuration lives at <strong>Stores → Configuration → eTechFlow → Next Day Eligibility</strong>.</p>
+
+  <h3>7.1 General Settings</h3>
+  <table>
+    <tr><th>Field</th><th>Description</th><th>Default</th></tr>
+    <tr><td>Enable Module</td><td>Master on/off switch.</td><td>Yes</td></tr>
+    <tr><td>Next Day Shipping Method Codes</td><td>Comma-separated <code>carrier_method</code> codes that should be hidden when any cart item is not eligible.</td><td><code>flatrate_flatrate</code></td></tr>
+    <tr><td>Label: Next Day Eligible (Yes)</td><td>Green badge text shown on eligible products.</td><td>Next Day Eligible</td></tr>
+    <tr><td>Label: Next Day Eligible (No)</td><td>Grey badge text shown on non-eligible products.</td><td>Standard Delivery Only</td></tr>
+  </table>
+
+  <h3>7.2 Drop-Ship Exception</h3>
+  <p>The <em>Drop-Ship Exception</em> group contains an explanatory note. The actual per-product flag is on the product edit page (see section 8.2).</p>
+
+  <div class="callout info">
+    <p><strong>Finding shipping method codes:</strong> Method codes follow the pattern <code>carrier_method</code> (e.g. <code>flatrate_flatrate</code>, <code>ups_NEXTDA</code>). Inspect the <code>quote_shipping_rate</code> table for the exact codes used by your carriers, or read them from <strong>Stores → Configuration → Sales → Delivery Methods</strong>.</p>
+  </div>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>8. Using the Extension</h2>
+
+  <h3>8.1 How eligibility is calculated</h3>
+  <p>Each time a stock item or product is saved, the observer applies this rule:</p>
+<pre><code>next_day_eligible = (qty &gt; 0 AND stock_status = in_stock)
+                    OR (drop_ship_eligible = Yes)</code></pre>
+
+  <table>
+    <tr><th>Stock state</th><th>Drop-Ship Eligible</th><th>Result</th></tr>
+    <tr><td>In stock with qty ≥ 1</td><td>—</td><td><strong>Eligible</strong></td></tr>
+    <tr><td>Out of stock or qty = 0</td><td>No</td><td>Not eligible</td></tr>
+    <tr><td>Out of stock or qty = 0</td><td>Yes</td><td><strong>Eligible</strong> (supplier ships directly)</td></tr>
+  </table>
+
+  <h3>8.2 Setting Drop-Ship Eligible per product</h3>
+  <ol>
+    <li>Open the product in <strong>Catalog → Products</strong>.</li>
+    <li>Scroll to the <strong>eTechFlow Shipping</strong> attribute group.</li>
+    <li>Set <strong>Drop-Ship Eligible</strong> to <strong>Yes</strong>.</li>
+    <li>Click <strong>Save</strong>.</li>
+  </ol>
+  <p>The product save observer immediately re-evaluates eligibility, so customers who already have the product in their cart will see the updated state on their next checkout page reload.</p>
+
+  <h3>8.3 Configurable, grouped, and bundle products</h3>
+  <p>Parent products inherit eligibility from their children: the parent is <strong>eligible</strong> if at least one child is eligible, otherwise <strong>not eligible</strong>. The badge on the parent product page reflects this aggregate.</p>
+
+  <h3>8.4 Checkout behaviour</h3>
+  <p>If any item in the customer’s cart has <code>next_day_eligible = No</code>, all method codes listed in the configuration are removed from the available shipping rates. This applies to the standard one-page checkout, the REST API, and any headless integration that uses Magento’s shipping rate calculation.</p>
+
+  <div class="callout warn">
+    <p><strong>Multi-shipping checkout:</strong> When a customer ships items to multiple addresses, each address is evaluated independently. An address with all-eligible items keeps next-day shipping options, even if a different address in the same order has a non-eligible item.</p>
+  </div>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>9. Uninstallation</h2>
+
+  <h3>9.1 Remove product attributes (optional)</h3>
+  <p>If you want to delete the eligibility attributes and all their stored data:</p>
+<pre><code>php bin/magento eav:attribute:remove next_day_eligible
+php bin/magento eav:attribute:remove drop_ship_eligible</code></pre>
+
+  <h3>9.2 Disable and remove the module</h3>
+<pre><code>php bin/magento module:disable ETechFlow_NextDayEligibility
+composer remove etechflow/module-next-day-eligibility   # Composer install only
+php bin/magento setup:upgrade
+php bin/magento setup:di:compile
+php bin/magento cache:flush</code></pre>
+  <p>If installed manually, also delete the directory:</p>
+<pre><code>rm -rf app/code/ETechFlow/NextDayEligibility</code></pre>
+
+  <h2>10. Troubleshooting</h2>
+
+  <h3>“Next Day Eligible” badge does not appear</h3>
+  <ul>
+    <li>Hard-refresh the page (Cmd+Shift+R or Ctrl+Shift+R) — your browser may have cached the old page.</li>
+    <li>Run <code>php bin/magento cache:flush</code>.</li>
+    <li>Verify the module is enabled: <code>php bin/magento module:status ETechFlow_NextDayEligibility</code>.</li>
+    <li>Check <code>var/log/exception.log</code> for module-related errors.</li>
+  </ul>
+
+  <h3>Next-day method is still showing despite OOS items</h3>
+  <ul>
+    <li>Verify the method code in <strong>Stores → Configuration → eTechFlow → Next Day Eligibility</strong> matches the actual carrier/method code (e.g. <code>ups_NEXTDA</code> not <code>ups_nextda</code>).</li>
+    <li>Confirm the OOS product is not flagged <strong>Drop-Ship Eligible = Yes</strong> (which intentionally bypasses the restriction).</li>
+    <li>Reindex: <code>php bin/magento indexer:reindex</code>.</li>
+  </ul>
+
+  <h3>Eligibility didn’t update after I changed Drop-Ship</h3>
+  <ul>
+    <li>The product save observer recomputes eligibility on every save where the drop-ship value changes. If your save did not actually change the value, no recompute runs.</li>
+    <li>Force a refresh by saving the stock item (any qty change works) — the stock observer recomputes too.</li>
+  </ul>
+</section>
+
+<section class="page">
+  <div class="page-header">
+    <img src="../../_shared_assets/logo.png" alt="">
+    <span class="title">Next Day Eligibility — Installation Guide</span>
+  </div>
+
+  <h2>11. Support &amp; Contact</h2>
+  <p>If you encounter any issue not covered by this guide, get in touch with our support team. We aim to respond within one business day.</p>
+
+  <div class="footer-card">
+    <h3>eTechFlow Support</h3>
+    <div class="row">
+      <div>
+        <p>Email</p>
+        <p><a href="mailto:info@etechflow.com">info@etechflow.com</a></p>
+      </div>
+      <div>
+        <p>Website</p>
+        <p><a href="https://etechflow.com">https://etechflow.com</a></p>
+      </div>
+      <div>
+        <p>Module</p>
+        <p>ETechFlow_NextDayEligibility 1.0.0</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-top: 18pt;">
+    <p><strong>When reporting an issue, please include:</strong></p>
+    <ul>
+      <li>Magento version and edition (Open Source / Commerce)</li>
+      <li>PHP version (<code>php -v</code>)</li>
+      <li>Module version (from <code>composer.json</code> or <code>etc/module.xml</code>)</li>
+      <li>The relevant excerpt from <code>var/log/exception.log</code> or <code>var/log/system.log</code></li>
+      <li>Steps to reproduce the issue</li>
+    </ul>
+  </div>
+
+  <hr>
+  <p style="text-align: center; color: var(--muted); font-size: 9pt; margin-top: 30pt;">
+    © 2026 eTechFlow Pvt. Ltd. — All rights reserved. <br>
+    This document and the associated extension are licensed under the eTechFlow Proprietary License.
+  </p>
+</section>
+
+</body>
+</html>

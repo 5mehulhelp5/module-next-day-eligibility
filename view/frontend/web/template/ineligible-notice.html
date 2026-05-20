@@ -1,0 +1,17 @@
+<!-- ko if: isVisible -->
+<div class="etechflow-nextday-notice"
+     data-bind="css: 'etechflow-nextday-notice--' + noticeStyle"
+     role="alert">
+    <span class="etechflow-nextday-notice__icon" aria-hidden="true"></span>
+    <div class="etechflow-nextday-notice__body">
+        <strong class="etechflow-nextday-notice__title"
+                data-bind="text: noticeTitle"></strong>
+        <span class="etechflow-nextday-notice__message"
+              data-bind="text: noticeMessage"></span>
+    </div>
+    <button type="button"
+            class="etechflow-nextday-notice__dismiss"
+            data-bind="click: dismiss"
+            aria-label="Dismiss notice">&#x2715;</button>
+</div>
+<!-- /ko -->

@@ -1,0 +1,93 @@
+.etechflow-nextday-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    margin: 0 0 24px;
+    border-radius: 6px;
+    border-left-width: 4px;
+    border-left-style: solid;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.etechflow-nextday-notice__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.etechflow-nextday-notice__title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.etechflow-nextday-notice__message {
+    font-size: 13.5px;
+    opacity: 0.92;
+}
+
+.etechflow-nextday-notice__icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.etechflow-nextday-notice__dismiss {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 4px 6px;
+    color: inherit;
+    opacity: 0.55;
+    flex-shrink: 0;
+    margin-top: -2px;
+    border-radius: 3px;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.etechflow-nextday-notice__dismiss:hover,
+.etechflow-nextday-notice__dismiss:focus {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.06);
+    outline: none;
+}
+
+/* Warning (default) — amber */
+.etechflow-nextday-notice--warning {
+    background-color: #fff8e1;
+    border-left-color: #f57c00;
+    color: #5d4037;
+}
+.etechflow-nextday-notice--warning .etechflow-nextday-notice__icon {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f57c00'><path d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/></svg>");
+}
+
+/* Info — blue */
+.etechflow-nextday-notice--info {
+    background-color: #e3f2fd;
+    border-left-color: #1976d2;
+    color: #0d47a1;
+}
+.etechflow-nextday-notice--info .etechflow-nextday-notice__icon {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231976d2'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/></svg>");
+}
+
+/* Error — red */
+.etechflow-nextday-notice--error {
+    background-color: #fce4ec;
+    border-left-color: #c62828;
+    color: #b71c1c;
+}
+.etechflow-nextday-notice--error .etechflow-nextday-notice__icon {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c62828'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/></svg>");
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Inject ConfigProvider into checkout composite provider (frontend scope) -->
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="etechflow_nextday_config_provider"
+                      xsi:type="object">ETechFlow\NextDayEligibility\Model\ConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

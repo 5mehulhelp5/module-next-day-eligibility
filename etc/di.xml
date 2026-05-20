@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Quote\Model\Quote\Address">
+        <plugin name="etechflow_nextday_shipping_restriction"
+                type="ETechFlow\NextDayEligibility\Plugin\ShippingRestriction"
+                sortOrder="10"
+                disabled="false" />
+    </type>
+
+    <!-- Register the v1.4.0 verification command: bin/magento etechflow:nde:verify -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="etechflow_nde_verify"
+                      xsi:type="object">ETechFlow\NextDayEligibility\Console\Command\VerifyCommand</item>
+                <item name="etechflow_nde_list_methods"
+                      xsi:type="object">ETechFlow\NextDayEligibility\Console\Command\ListMethodsCommand</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

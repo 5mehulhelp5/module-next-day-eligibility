@@ -1,0 +1,51 @@
+<?php
+/**
+ * Next Day Eligibility badge — Hyvä Theme variant (Tailwind + Alpine).
+ *
+ * Renders only on stores using a theme that inherits from the Hyvä parent
+ * theme. The corresponding Luma template lives in product/next-day-badge.phtml.
+ *
+ * Visuals: filled pill with leading icon, dark-mode variants, and a subtle
+ * fade-in transition that respects prefers-reduced-motion.
+ *
+ * @var \ETechFlow\NextDayEligibility\Block\Product\NextDayBadge $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+if (!$block->isModuleEnabled() || !$block->getCurrentProduct() || !$block->shouldRenderBadge()) {
+    return;
+}
+
+$eligible = $block->isNextDayEligible();
+$label    = $eligible ? $block->getLabelYes() : $block->getLabelNo();
+
+if ($eligible) {
+    $containerClasses = 'bg-emerald-600 text-white ring-1 ring-emerald-700/20 '
+        . 'dark:bg-emerald-500 dark:ring-emerald-300/30';
+    $tooltip = __('This product qualifies for next day delivery');
+    $iconPath = 'M5 13l4 4L19 7'; // check mark
+} else {
+    $containerClasses = 'bg-slate-600 text-white ring-1 ring-slate-700/20 '
+        . 'dark:bg-slate-500 dark:ring-slate-300/30';
+    $tooltip = __('This product does not qualify for next day delivery');
+    $iconPath = 'M6 18L18 6M6 6l12 12'; // x mark
+}
+?>
+<div x-data="{ show: false }"
+     x-init="$nextTick(() => show = true)"
+     x-cloak
+     class="etechflow-nextday-badge inline-block my-2">
+    <span x-show="show"
+          x-transition:enter="motion-safe:transition motion-safe:ease-out motion-safe:duration-200"
+          x-transition:enter-start="motion-safe:opacity-0 motion-safe:scale-95"
+          x-transition:enter-end="motion-safe:opacity-100 motion-safe:scale-100"
+          class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wide rounded-full shadow-sm <?= $escaper->escapeHtmlAttr($containerClasses) ?>"
+          role="status"
+          aria-label="<?= $escaper->escapeHtmlAttr($tooltip) ?>"
+          title="<?= $escaper->escapeHtmlAttr($tooltip) ?>">
+        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="<?= $escaper->escapeHtmlAttr($iconPath) ?>"/>
+        </svg>
+        <span><?= $escaper->escapeHtml(__($label)) ?></span>
+    </span>
+</div>

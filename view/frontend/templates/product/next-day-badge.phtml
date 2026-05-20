@@ -1,0 +1,45 @@
+<?php
+/**
+ * @var \ETechFlow\NextDayEligibility\Block\Product\NextDayBadge $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<?php if ($block->isModuleEnabled() && $block->getCurrentProduct() && $block->shouldRenderBadge()): ?>
+<div class="etechflow-nextday-badge">
+    <?php if ($block->isNextDayEligible()): ?>
+        <span class="etechflow-nextday-badge__status etechflow-nextday-badge__status--eligible"
+              title="<?= $escaper->escapeHtmlAttr(__('This product qualifies for next day delivery')) ?>">
+            <?= $escaper->escapeHtml(__($block->getLabelYes())) ?>
+        </span>
+    <?php else: ?>
+        <span class="etechflow-nextday-badge__status etechflow-nextday-badge__status--ineligible"
+              title="<?= $escaper->escapeHtmlAttr(__('This product does not qualify for next day delivery')) ?>">
+            <?= $escaper->escapeHtml(__($block->getLabelNo())) ?>
+        </span>
+    <?php endif; ?>
+</div>
+<style>
+    .etechflow-nextday-badge {
+        margin: 8px 0 12px;
+        display: inline-block;
+    }
+    .etechflow-nextday-badge__status {
+        display: inline-block;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 3px;
+        letter-spacing: 0.3px;
+        line-height: 1.5;
+        cursor: default;
+    }
+    .etechflow-nextday-badge__status--eligible {
+        background-color: #2e7d32;
+        color: #ffffff;
+    }
+    .etechflow-nextday-badge__status--ineligible {
+        background-color: #757575;
+        color: #ffffff;
+    }
+</style>
+<?php endif; ?>

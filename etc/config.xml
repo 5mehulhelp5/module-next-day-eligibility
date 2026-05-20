@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <etechflow_nextdayeligibility>
+            <license>
+                <license_key></license_key>
+            </license>
+            <general>
+                <enabled>1</enabled>
+                <shipping_method_codes></shipping_method_codes>
+                <badge_visibility>both</badge_visibility>
+                <label_yes>Next Day Eligible</label_yes>
+                <label_no>Standard Delivery</label_no>
+                <additional_method_codes></additional_method_codes>
+                <click_collect_method_codes></click_collect_method_codes>
+                <click_collect_additional_codes></click_collect_additional_codes>
+            </general>
+            <drop_ship>
+                <source>flag</source>
+                <supplier_pairs></supplier_pairs>
+                <qualifying_suppliers></qualifying_suppliers>
+            </drop_ship>
+            <notice>
+                <show_notice>1</show_notice>
+                <notice_style>warning</notice_style>
+                <notice_title>Next day delivery unavailable</notice_title>
+                <notice_message>One or more items in your cart is not eligible for next day delivery. Standard shipping options are available.</notice_message>
+            </notice>
+            <backorder_restriction>
+                <enabled>0</enabled>
+                <express_method_codes></express_method_codes>
+                <additional_express_codes></additional_express_codes>
+                <skip_drop_ship>1</skip_drop_ship>
+            </backorder_restriction>
+        </etechflow_nextdayeligibility>
+    </default>
+</config>

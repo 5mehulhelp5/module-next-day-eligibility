@@ -1,0 +1,121 @@
+eTechFlow End User License Agreement
+Next Day Shipping Eligibility for Magento 2
+
+Copyright (c) 2026 eTechFlow. All rights reserved.
+
+This software is licensed, not sold. By installing, copying, or otherwise
+using this software, you agree to be bound by the terms of this End User
+License Agreement ("EULA").
+
+Full terms and the most current version of this agreement:
+    https://etechflow.com/license
+
+
+1. GRANT OF LICENSE
+
+   Subject to your continued compliance with this EULA and payment of any
+   applicable fees, eTechFlow grants you a non-exclusive, non-transferable
+   license to:
+
+   (a) Install this software on ONE (1) production Magento or Adobe
+       Commerce installation per purchased license, regardless of the
+       number of storeviews, stores, or websites within that installation.
+
+   (b) Install this software on UNLIMITED development, staging, test,
+       and quality-assurance environments under the same business
+       entity. Recognised dev/staging hosts are detected automatically
+       (see docs/USER_GUIDE.md for the full list).
+
+   (c) Receive updates and support for the period covered by your
+       subscription, or for one (1) year from the date of purchase for
+       lifetime licences.
+
+
+2. RESTRICTIONS
+
+   You may NOT:
+
+   (a) Redistribute, resell, sublicense, rent, lease, or lend this
+       software, in whole or in part, to any third party.
+
+   (b) Modify, decompile, reverse engineer, or disassemble the licence
+       enforcement code, or attempt to circumvent the licence validation
+       mechanism.
+
+   (c) Use this software on a different Magento installation than the
+       one covered by your licence, without obtaining a new licence or
+       a documented domain transfer from eTechFlow.
+
+   (d) Remove, alter, or obscure any copyright, trademark, or other
+       proprietary notices contained within the software.
+
+   (e) Use this software in any manner that violates applicable laws.
+
+
+3. DOMAIN TRANSFERS
+
+   If you legitimately need to move your Magento installation to a
+   different domain (e.g. site migration from one TLD to another), email
+   support@etechflow.com with your old domain, new domain, and order
+   number. We will issue a new licence key for the new domain at no
+   additional charge, typically within one business day.
+
+
+4. UNLIMITED DEV / STAGING
+
+   You may install this software on any number of development, staging,
+   testing, or local environments under the same business entity. The
+   software auto-detects common dev hostname patterns and operates
+   without a licence on those hosts.
+
+
+5. SUBSCRIPTION TERMS (if applicable)
+
+   For licences sold on a subscription basis, your subscription must
+   remain active to continue receiving software updates and support.
+   If your subscription lapses, the software continues to function
+   on your then-installed version, but you will not receive bug fixes,
+   feature updates, or technical support until renewal.
+
+
+6. SUPPORT
+
+   Email support is provided to active licence holders at
+   support@etechflow.com. Typical first response within one business day.
+
+   Support is provided in English. Includes installation help,
+   troubleshooting, and bug fixes. Does not include custom development
+   or third-party module compatibility work.
+
+
+7. DISCLAIMER OF WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+   NON-INFRINGEMENT.
+
+
+8. LIMITATION OF LIABILITY
+
+   IN NO EVENT SHALL ETECHFLOW BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+   OTHER LIABILITY EXCEEDING THE AMOUNT PAID BY YOU FOR THE SOFTWARE.
+
+
+9. TERMINATION
+
+   This licence terminates automatically if you fail to comply with any
+   of its terms. Upon termination, you must cease all use of the
+   software and destroy all copies.
+
+
+10. REFUND POLICY
+
+    Refund requests within 30 days of purchase, in good faith, will be
+    honoured. Email support@etechflow.com.
+
+
+Contact:
+    eTechFlow
+    support@etechflow.com
+    https://etechflow.com

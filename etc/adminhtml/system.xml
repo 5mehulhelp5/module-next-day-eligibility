@@ -1,0 +1,598 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="etechflow" translate="label" sortOrder="400">
+            <label>eTechFlow</label>
+        </tab>
+        <section id="etechflow_nextdayeligibility"
+                 translate="label"
+                 type="text"
+                 sortOrder="100"
+                 showInDefault="1"
+                 showInWebsite="1"
+                 showInStore="1">
+            <label>Next Day Eligibility</label>
+            <tab>etechflow</tab>
+            <resource>ETechFlow_NextDayEligibility::config</resource>
+
+            <!-- Status banner — first thing the merchant sees -->
+            <group id="module_status"
+                   translate="label"
+                   type="text"
+                   sortOrder="1"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Module Status</label>
+                <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\System\Config\ModuleStatus</frontend_model>
+            </group>
+
+            <group id="license"
+                   translate="label"
+                   type="text"
+                   sortOrder="5"
+                   showInDefault="1"
+                   showInWebsite="0"
+                   showInStore="0">
+                <label>License</label>
+                <field id="production_environment"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="5"
+                       showInDefault="1"
+                       showInWebsite="0"
+                       showInStore="0">
+                    <label>Production Environment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Yes for live sites, No for dev/staging on non-standard domains.</tooltip>
+                    <comment><![CDATA[
+                        <strong>Yes</strong> = this is your live site. The module checks the licence
+                        key against the current domain. If invalid, the module silently disables itself.<br/>
+                        <strong>No</strong> = this is dev/staging. The module runs at full features
+                        without a licence — use this on non-standard dev domains the auto-detector misses.<br/>
+                        Default: Yes.
+                    ]]></comment>
+                </field>
+                <field id="license_key"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="0"
+                       showInStore="0">
+                    <label>License Key</label>
+                    <tooltip>Paste your purchase-email key here. Bound to the production domain.</tooltip>
+                    <comment><![CDATA[
+                        Paste the key from your purchase email. Tied to your live website's address.<br/>
+                        Test or staging sites don't need a key — the module detects them automatically.<br/>
+                        <code>www.</code> doesn't matter — one key works whether your address is
+                        <code>shop.com</code> or <code>www.shop.com</code>.
+                    ]]></comment>
+                </field>
+            </group>
+
+            <group id="general"
+                   translate="label"
+                   type="text"
+                   sortOrder="10"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>General Settings</label>
+                <field id="enabled"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Enable Module</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Master on/off switch. No = module silently does nothing.</tooltip>
+                    <comment><![CDATA[
+                        Master on/off switch.<br/>
+                        <strong>Yes</strong> = the module runs: fast shipping options are hidden at checkout
+                        for ineligible carts, and the badge shows on product pages.<br/>
+                        <strong>No</strong> = the module does nothing. Useful if you want to quickly check
+                        whether a checkout issue is caused by this module.
+                    ]]></comment>
+                </field>
+                <field id="shipping_method_codes"
+                       translate="label comment tooltip"
+                       type="multiselect"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Express / Next-Day Shipping Methods</label>
+                    <source_model>ETechFlow\NextDayEligibility\Model\Source\AllShippingMethods</source_model>
+                    <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\System\Config\Form\Field\ShippingMethodMultiselect</frontend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <tooltip>Tick the fast shipping options you want to HIDE when the cart has any item that can't ship next day.</tooltip>
+                    <comment><![CDATA[
+                        Tick the fast shipping options (next-day, express, overnight) that should be
+                        <strong>hidden at checkout</strong> when the cart contains any item that can't
+                        ship next day.<br/><br/>
+                        <strong>How to pick:</strong> click an option to add or remove it. Use the red
+                        <strong>Clear all</strong> link below the field to reset every choice.<br/><br/>
+                        <strong>Can't see one of your shipping options?</strong> Some shipping add-ons
+                        register options in their own way and won't appear here automatically. Paste
+                        their code into the <em>Custom Express Method Codes</em> field below — it'll
+                        appear in this dropdown next time.<br/><br/>
+                        <strong>What happens at checkout:</strong> when any cart item is not next-day
+                        eligible, the options you tick here disappear from the shipping list. Slower
+                        options stay available so the customer can still complete the order.<br/><br/>
+                        <strong>⚠️ Don't tick everything.</strong> If you tick every option, ineligible
+                        carts will have no shipping choices and customers can't check out. The module
+                        restores the full list if that happens, but the right pattern is to tick only
+                        your paid express / next-day options.
+                    ]]></comment>
+                </field>
+                <field id="additional_method_codes"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="22"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Custom Express Method Codes</label>
+                    <tooltip>For shipping options that aren't appearing in the dropdown above. Paste their codes here, separated by commas.</tooltip>
+                    <comment><![CDATA[
+                        Use this field when one of your shipping options doesn't appear in the dropdown
+                        above. Common with custom shipping add-ons — the option works at checkout but
+                        doesn't show up in this list by default.<br/><br/>
+                        <strong>How to use:</strong> paste the shipping option code(s), separated by commas.
+                        Example: <code>custom_carrier_nextday, mycarrier_express</code><br/>
+                        Codes you paste here automatically appear in <strong>all three dropdowns</strong>
+                        on this page (Express, Standard, Backorder Express) under a "Custom / Additional
+                        Codes" group, so you can pick them like any built-in option.<br/><br/>
+                        <strong>Don't know the code?</strong> Ask your developer or the shipping add-on's
+                        support — they'll have a list of the codes the add-on uses.
+                    ]]></comment>
+                </field>
+                <field id="standard_method_codes"
+                       translate="label comment tooltip"
+                       type="multiselect"
+                       sortOrder="23"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Standard / Slow Shipping Methods (allow list)</label>
+                    <source_model>ETechFlow\NextDayEligibility\Model\Source\AllShippingMethods</source_model>
+                    <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\System\Config\Form\Field\ShippingMethodMultiselect</frontend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <tooltip>Optional. Tick the slower options that should still be offered when a cart can't ship next day. Leave empty to use the Express list above instead.</tooltip>
+                    <comment><![CDATA[
+                        <strong>Optional — easier alternative to the Express list above.</strong> Pick the
+                        slower / standard shipping options you want customers to see when their cart can't
+                        ship next day.<br/><br/>
+                        <strong>How it behaves:</strong>
+                        <ul style="margin-left:1.5em">
+                            <li><strong>If you tick options here:</strong> when a cart has any item that
+                                can't ship next day, customers see <strong>only</strong> the options you
+                                ticked. Everything else is hidden. (The Express list above is ignored
+                                in this mode.)</li>
+                            <li><strong>If you leave this empty</strong> (default): NDE falls back to the
+                                Express list above — it hides the options you ticked there and keeps
+                                everything else visible.</li>
+                        </ul>
+                        <strong>Why use this instead of the Express list?</strong> It's a clearer way to
+                        configure NDE: "these are the slow options I want customers to see" is easier to
+                        think about than "these are the fast options I want to hide". And when you add a
+                        new shipping option to your store later, it won't accidentally appear on
+                        ineligible carts — only the options you've explicitly ticked here will show.<br/><br/>
+                        Pick whichever style you prefer. Custom shipping options pasted into the
+                        <em>Custom Express Method Codes</em> or <em>Custom Standard Method Codes</em> field
+                        appear in this dropdown too.
+                    ]]></comment>
+                </field>
+                <field id="additional_standard_codes"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="24"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Custom Standard Method Codes</label>
+                    <tooltip>For slow / standard shipping options that aren't appearing in the dropdown above. Paste their codes here, comma-separated.</tooltip>
+                    <comment><![CDATA[
+                        Same idea as <em>Custom Express Method Codes</em>, but for slower / standard
+                        shipping options. Paste the codes of any standard shipping options that don't
+                        appear in the dropdown above, separated by commas.<br/>
+                        Codes you paste here count as part of the Standard allow list AND show up in
+                        every other dropdown on this page under "Custom / Additional Codes".
+                    ]]></comment>
+                </field>
+                <field id="click_collect_method_codes"
+                       translate="label comment tooltip"
+                       type="multiselect"
+                       sortOrder="24"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Click &amp; Collect / In-Store Pickup Methods</label>
+                    <source_model>ETechFlow\NextDayEligibility\Model\Source\AllShippingMethods</source_model>
+                    <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\System\Config\Form\Field\ShippingMethodMultiselect</frontend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <tooltip>Tick any in-store pickup options. If you do, customers won't see them when their cart has anything that's out of local stock.</tooltip>
+                    <comment><![CDATA[
+                        <strong>Optional — for stores with physical shops.</strong> Tick the shipping options
+                        you use for in-store pickup (Click &amp; Collect, Curbside Pickup, etc.).<br/><br/>
+                        <strong>What happens if you tick a method here:</strong> when a customer's cart has
+                        any item that is <em>out of local stock</em>, that pickup method is hidden at
+                        checkout — because you can't pick up something that isn't on your shelf. The next-day
+                        rules above run separately and aren't affected.<br/><br/>
+                        <strong>Why it's separate from the next-day rules:</strong> a product can be
+                        next-day-eligible via a drop-ship supplier, but it can never be Click &amp; Collect
+                        without local stock. This setting respects that.<br/><br/>
+                        <strong>Leave empty</strong> if you don't offer in-store pickup. Nothing changes,
+                        no methods get hidden.
+                    ]]></comment>
+                </field>
+                <field id="click_collect_additional_codes"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="24"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Custom Click &amp; Collect Method Codes</label>
+                    <tooltip>For pickup options that aren't appearing in the dropdown above. Paste their codes here, comma-separated.</tooltip>
+                    <comment><![CDATA[
+                        Same idea as <em>Custom Express Method Codes</em>, but for in-store pickup options.
+                        Paste codes of any pickup methods that don't appear in the dropdown above, separated
+                        by commas. Codes pasted here count as part of the Click &amp; Collect list AND show up
+                        in every other dropdown on this page under "Custom / Additional Codes".
+                    ]]></comment>
+                </field>
+                <field id="badge_visibility"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="25"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Show Badge on Product Page</label>
+                    <source_model>ETechFlow\NextDayEligibility\Model\Source\BadgeVisibility</source_model>
+                    <tooltip>Both = green + grey. Eligible only = green only. Never = no PDP badge.</tooltip>
+                    <comment><![CDATA[
+                        Controls the green/grey badge on the product page.<br/>
+                        <strong>Both</strong> (default) = show "Next Day Eligible" (green) for eligible products
+                        AND "Standard Delivery" (grey) for ineligible ones. Maximum transparency.<br/>
+                        <strong>Eligible only</strong> = show the green badge only. Hides the grey badge so you
+                        don't draw negative attention to ineligible products.<br/>
+                        <strong>Never</strong> = no badge on the product page. The shipping rule at checkout
+                        still works — this just hides the visual indicator.<br/><br/>
+                        The grey badge is also hidden on products that can't be added to cart
+                        (out of stock with no backorders), so it never appears alongside an "Out of Stock" label.
+                    ]]></comment>
+                </field>
+                <field id="label_yes"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Badge Label — Eligible</label>
+                    <tooltip>Customer-facing label for the green eligible badge.</tooltip>
+                    <comment><![CDATA[
+                        Text shown on the green badge for products that qualify for next-day delivery.
+                        This text can be changed per store / per language.
+                    ]]></comment>
+                </field>
+                <field id="label_no"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="40"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Badge Label — Ineligible</label>
+                    <tooltip>Customer-facing label for the grey ineligible badge. Default: "Standard Delivery".</tooltip>
+                    <comment><![CDATA[
+                        Text shown on the grey badge for products that do NOT qualify for next-day delivery.
+                        Only used when Show Badge on Product Page = Both. Can be different per store / language.<br/>
+                    ]]></comment>
+                </field>
+            </group>
+            <group id="drop_ship"
+                   translate="label"
+                   type="text"
+                   sortOrder="20"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Drop-Ship Exception</label>
+                <field id="auto_enable_backorders"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="5"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Auto-Enable Backorders for Drop-Ship Products</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Yes = ticking Drop-Ship Eligible also sets Magento Backorders to "Allow Qty Below 0".</tooltip>
+                    <comment><![CDATA[
+                        Closes a UX gap when you flag products as Drop-Ship Eligible.<br/><br/>
+                        <strong>Yes</strong> (default) = when a product's <em>Drop-Ship Eligible</em>
+                        attribute is set to Yes and saved, the module automatically sets that product's
+                        <em>Advanced Inventory → Backorders</em> to "Allow Qty Below 0" too. This keeps
+                        the storefront usable: products that show as "Next Day Eligible" via drop-ship
+                        will also have an Add-to-Cart button when local stock is zero.<br/>
+                        Flipping Drop-Ship Eligible back to No reverts the backorder setting to "Use Config".<br/><br/>
+                        <strong>No</strong> = the module never touches your products' backorder settings.
+                        You manage them manually via Advanced Inventory. Note: drop-ship products with
+                        local stock of zero will then show as Out of Stock and lose their Add-to-Cart button.
+                    ]]></comment>
+                </field>
+                <field id="drop_ship_note"
+                       translate="label"
+                       type="note"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>How Drop-Ship Works</label>
+                    <comment><![CDATA[
+                        When a product is out of local stock, it's normally marked ineligible and
+                        next-day shipping is blocked. The exception: if a product has
+                        <strong>Drop-Ship Eligible = Yes</strong> set on its edit page
+                        (under the <em>eTechFlow Shipping</em> attribute group), it remains
+                        next-day eligible even when local stock is zero. This is for products
+                        fulfilled directly by a supplier who ships on your behalf the same day.
+                        <br/><br/>
+                        <strong>Bulk-edit tip:</strong> to flag many products at once, go to
+                        <em>Catalog → Products</em>, filter as needed, tick the products, and use
+                        <em>Actions → Update attributes → Drop-Ship Eligible = Yes</em>.
+                    ]]></comment>
+                </field>
+                <field id="source"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Drop-Ship Source</label>
+                    <source_model>ETechFlow\NextDayEligibility\Model\Source\DropShipSource</source_model>
+                    <tooltip>Where the module reads drop-ship status from. Default = the manual Drop-Ship Eligible flag.</tooltip>
+                    <comment><![CDATA[
+                        <strong>Manual flag only</strong> (default) — uses the per-product
+                        <em>Drop-Ship Eligible</em> attribute described above. Recommended for
+                        most stores.<br/><br/>
+                        <strong>Supplier-based</strong> — also checks the product's supplier
+                        attributes. Use this when you have multiple suppliers per product and
+                        only specific suppliers ship same-day. Configure the supplier attribute
+                        codes and qualifying supplier names below. The manual flag still works
+                        as an override — setting it to Yes always wins.
+                    ]]></comment>
+                </field>
+                <field id="supplier_pairs"
+                       translate="label comment tooltip"
+                       type="textarea"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Supplier Attribute Pairs</label>
+                    <depends>
+                        <field id="source">supplier</field>
+                    </depends>
+                    <tooltip>One pair per line. Format: active_attr_code:name_attr_code</tooltip>
+                    <comment><![CDATA[
+                        Tells the module which product attributes hold supplier state. One pair
+                        per line, format <code>active_attr_code:name_attr_code</code>.<br/><br/>
+                        Example for a store with three supplier slots (S1, S2, S3):<br/>
+                        <pre style="margin:4px 0">s1_active:s1
+s2_active:s2
+s3_active:s3</pre>
+                        For each pair, the module reads <em>active_attr_code</em> (1 = active) and
+                        <em>name_attr_code</em> (supplier name) on the product, and compares the
+                        name against the qualifying list below. Lines starting with <code>#</code>
+                        are treated as comments.
+                    ]]></comment>
+                </field>
+                <field id="qualifying_suppliers"
+                       translate="label comment tooltip"
+                       type="textarea"
+                       sortOrder="40"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Qualifying Supplier Names</label>
+                    <depends>
+                        <field id="source">supplier</field>
+                    </depends>
+                    <tooltip>Supplier names that count as same-day. One per line. Match is case-insensitive.</tooltip>
+                    <comment><![CDATA[
+                        One supplier name per line — these are the suppliers that ship same-day
+                        on your behalf. Match against the product's supplier-name attribute
+                        is case-insensitive and trims whitespace.<br/><br/>
+                        Example:<br/>
+                        <pre style="margin:4px 0">Auto remote man
+FastFreight Inc.
+RushShip Express</pre>
+                        Empty list = no supplier qualifies → supplier mode does nothing
+                        (eligibility falls back to the manual flag).
+                    ]]></comment>
+                </field>
+            </group>
+
+            <group id="backorder_restriction"
+                   translate="label"
+                   type="text"
+                   sortOrder="25"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Backorder Express Restriction</label>
+                <field id="enabled"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Also hide express options when cart has backorder items</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Optional second rule. Yes = also hide fast shipping when the cart contains items the customer is backordering.</tooltip>
+                    <comment><![CDATA[
+                        Optional second rule, on top of the next-day rule above.<br/><br/>
+                        <strong>Yes</strong> = whenever the cart contains a backorder item (out of stock
+                        with backorders allowed, or ordered quantity larger than the available stock),
+                        the shipping options you tick below are hidden at checkout.<br/>
+                        <strong>No</strong> (default) = this rule is off. The next-day rule above still
+                        runs independently.
+                    ]]></comment>
+                </field>
+                <field id="express_method_codes"
+                       translate="label comment tooltip"
+                       type="multiselect"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Express Options to Hide for Backorder Carts</label>
+                    <source_model>ETechFlow\NextDayEligibility\Model\Source\AllShippingMethods</source_model>
+                    <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\System\Config\Form\Field\ShippingMethodMultiselect</frontend_model>
+                    <can_be_empty>1</can_be_empty>
+                    <tooltip>Tick the express options to hide when the cart contains backorder items.</tooltip>
+                    <comment><![CDATA[
+                        Tick the express / fast shipping options to <strong>hide at checkout</strong>
+                        whenever the cart contains backorder items.<br/><br/>
+                        Kept separate from the Express list at the top of this page so you can target
+                        different options for the two rules — e.g. you might hide only DHL Express for
+                        backorder carts, but hide DHL Express AND Royal Mail Special Delivery for any
+                        ineligible cart.<br/><br/>
+                        <strong>⚠️ Same warning as the Express list above</strong> — don't tick every
+                        option. Always leave at least one slower / free option visible so backorder
+                        customers can still complete checkout.
+                    ]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="additional_express_codes"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="22"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Custom Express Codes for Backorder Rule</label>
+                    <tooltip>Same idea as Custom Express Method Codes — for shipping options not in the dropdown above.</tooltip>
+                    <comment><![CDATA[
+                        Same idea as <em>Custom Express Method Codes</em> in the General Settings group —
+                        paste shipping option codes (comma-separated) that aren't appearing in the
+                        dropdown above. Codes you paste here are merged with whatever you ticked above.
+                    ]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+                <field id="skip_drop_ship"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Skip drop-ship products from this rule</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Yes (default) = drop-ship products ignore the backorder rule because the supplier ships them direct.</tooltip>
+                    <comment><![CDATA[
+                        <strong>Yes</strong> (default) = products marked <em>Drop-Ship Eligible = Yes</em>
+                        skip this backorder rule. They aren't really on backorder from the customer's
+                        point of view because the supplier ships them directly.<br/>
+                        <strong>No</strong> = the backorder rule applies even to drop-ship products.
+                        Only use this if your suppliers have unreliable shipping speeds.
+                    ]]></comment>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+
+            <group id="notice"
+                   translate="label"
+                   type="text"
+                   sortOrder="30"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Checkout Notice</label>
+                <field id="show_notice"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Show Notice at Checkout</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Yes = dismissible banner explains why express options are gone.</tooltip>
+                    <comment><![CDATA[
+                        <strong>Yes</strong> (default) = a dismissible banner appears on the shipping
+                        step of checkout whenever either shipping rule fires. Tells the customer
+                        <em>why</em> the express options aren't available. Reduces "where's my faster
+                        shipping?" support tickets.<br/>
+                        <strong>No</strong> = no banner. Methods are still removed silently.
+                    ]]></comment>
+                </field>
+                <field id="notice_style"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Notice Style</label>
+                    <source_model>ETechFlow\NextDayEligibility\Model\Source\NoticeStyle</source_model>
+                    <tooltip>Banner colour: warning (amber) / info (blue) / error (red).</tooltip>
+                    <comment><![CDATA[
+                        Colour scheme for the banner:
+                        <strong>Warning</strong> (amber, default), <strong>Info</strong> (blue), or
+                        <strong>Error</strong> (red). Pick the tone that matches your brand and the
+                        urgency you want to convey.
+                    ]]></comment>
+                </field>
+                <field id="notice_title"
+                       translate="label comment tooltip"
+                       type="text"
+                       sortOrder="25"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Notice Title</label>
+                    <tooltip>Bold heading on the banner.</tooltip>
+                    <comment><![CDATA[
+                        Bold heading at the top of the banner. Default:
+                        <em>"Next day delivery unavailable"</em>.
+                        Per-store-view configurable for multi-language stores.
+                    ]]></comment>
+                </field>
+                <field id="notice_message"
+                       translate="label comment tooltip"
+                       type="textarea"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Notice Message</label>
+                    <tooltip>Body text under the title. Keep generic — applies to both rules.</tooltip>
+                    <comment><![CDATA[
+                        Body text under the title. Default:
+                        <em>"One or more items in your cart is not eligible for next day delivery.
+                        Standard shipping options are available."</em><br/>
+                        Same message shows for both rules (next-day OR backorder). If you want
+                        rule-specific wording, keep it generic — e.g. "Express shipping unavailable
+                        for one or more items in your cart."
+                    ]]></comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

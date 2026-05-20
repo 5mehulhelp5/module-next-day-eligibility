@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="cataloginventory_stock_item_save_after">
+        <observer name="etechflow_nextday_update_eligibility"
+                  instance="ETechFlow\NextDayEligibility\Observer\UpdateNextDayEligibility" />
+    </event>
+    <event name="catalog_product_save_after">
+        <observer name="etechflow_nextday_update_on_product_save"
+                  instance="ETechFlow\NextDayEligibility\Observer\UpdateOnProductSave" />
+    </event>
+</config>

@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!--
+    Hyvä Checkout integration. Loaded only when the Hyvä Checkout module
+    (hyva-themes/magento2-hyva-checkout or magento2-default-checkout) is
+    installed; on stores without it, this handle is inert.
+
+    Container strategy (v1.4.1+):
+    ====================================================================
+    Hyvä Checkout's layout structure differs from Magento's Knockout
+    checkout. The standard "checkout.shipping.before" container that
+    Knockout exposes is NOT reliably present in Hyvä Checkout — different
+    versions of the Hyvä Checkout module expose different container names,
+    and a single container reference can silently no-op.
+
+    To stay robust across Hyvä Checkout versions, the same notice block is
+    referenced from THREE well-known Hyvä Checkout containers. The block's
+    isVisible() short-circuits the template render when the cart is
+    eligible, so a non-firing scenario shows nothing regardless of how
+    many containers picked it up. The Alpine `etechflow-nde-notice-shown`
+    flag (set on first render) prevents a duplicate render in the rare
+    case that two containers BOTH render the block.
+
+    Containers attempted, in order of preference:
+      1. before-form-shipping-address          (most universally exposed)
+      2. shipping-method-list.before-text      (most relevant placement)
+      3. checkout.shipping.before              (legacy / Knockout fallback)
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before-form-shipping-address">
+            <block name="etechflow.nextday.notice.hyva.form"
+                   template="ETechFlow_NextDayEligibility::checkout/hyva-ineligible-notice.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">
+                        ETechFlow\NextDayEligibility\ViewModel\HyvaCheckoutNotice
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+
+        <referenceContainer name="shipping-method-list.before-text">
+            <block name="etechflow.nextday.notice.hyva.methods"
+                   template="ETechFlow_NextDayEligibility::checkout/hyva-ineligible-notice.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">
+                        ETechFlow\NextDayEligibility\ViewModel\HyvaCheckoutNotice
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+
+        <referenceContainer name="checkout.shipping.before">
+            <block name="etechflow.nextday.notice.hyva.legacy"
+                   template="ETechFlow_NextDayEligibility::checkout/hyva-ineligible-notice.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">
+                        ETechFlow\NextDayEligibility\ViewModel\HyvaCheckoutNotice
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

@@ -1,0 +1,44 @@
+{
+    "name": "etechflow/module-next-day-eligibility",
+    "description": "Automatically manages a Next Day Eligible attribute on products based on real-time stock and a per-product Drop-Ship override, and restricts configured next-day shipping methods at checkout when any cart item is not eligible.",
+    "type": "magento2-module",
+    "version": "1.5.1",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "eTechFlow Pvt. Ltd.",
+            "email": "info@etechflow.com",
+            "homepage": "https://etechflow.com"
+        }
+    ],
+    "support": {
+        "email": "info@etechflow.com",
+        "source": "https://etechflow.com"
+    },
+    "require": {
+        "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
+        "magento/framework": "^103.0||^104.0",
+        "magento/module-catalog": "^104.0||^105.0",
+        "magento/module-catalog-inventory": "^100.4||^101.0",
+        "magento/module-checkout": "^100.4||^101.0",
+        "magento/module-quote": "^101.2||^102.0",
+        "magento/module-store": "^101.1||^102.0",
+        "magento/module-config": "^101.2||^102.0",
+        "magento/module-configurable-product": "^100.4||^101.0",
+        "magento/module-grouped-product": "^100.4||^101.0",
+        "magento/module-bundle": "^101.0||^102.0",
+        "magento/module-eav": "^102.1||^103.0"
+    },
+    "suggest": {
+        "hyva-themes/magento2-default-theme": "Hyvä Theme support is built in — install Hyvä to enable Tailwind-styled templates automatically.",
+        "etechflow/module-backorder-eta-display": "Pair with Backorder ETA Display to show next-day eligibility and backorder ETAs together."
+    },
+    "autoload": {
+        "psr-4": {
+            "ETechFlow\\NextDayEligibility\\": ""
+        },
+        "files": [
+            "registration.php"
+        ]
+    }
+}

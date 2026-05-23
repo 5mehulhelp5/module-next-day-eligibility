@@ -12,6 +12,7 @@ use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableType;
 use Magento\Eav\Model\Config as EavConfig;
+use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\GroupedProduct\Model\Product\Type\Grouped as GroupedType;
 use Magento\Store\Model\Store;
@@ -46,7 +47,8 @@ class EligibilityEvaluator
         private readonly ResourceConnection $resourceConnection,
         private readonly EavConfig $eavConfig,
         private readonly Config $config,
-        private readonly SupplierDropShipResolver $supplierResolver
+        private readonly SupplierDropShipResolver $supplierResolver,
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -170,6 +172,24 @@ class EligibilityEvaluator
             [self::ATTRIBUTE_CODE => (int) $isEligible],
             Store::DEFAULT_STORE_ID
         );
+
+        // v1.6.1 fix: explicitly invalidate the FPC tag for this product.
+        // Magento Core's catalog_product_attribute_update_after observer is
+        // supposed to handle FPC invalidation when updateAttributes() runs,
+        // but it doesn't reliably fire from CLI, cron, or plugin contexts
+        // (area-not-set issues), so customers can keep seeing the old
+        // next_day_eligible value cached at the FPC layer until a manual
+        // cache:flush. Surgical per-product invalidation — uses the product's
+        // cache tag (cat_p_<id>) so only that product's FPC entries are
+        // affected, not the whole FPC namespace.
+        //
+        // Works for both Magento's built-in FPC and Varnish — Magento's
+        // CacheInterface translates tag-cleans into Varnish BAN requests
+        // when Varnish is the configured backend.
+        //
+        // Cloudflare is NOT covered by this — Magento has no native CF
+        // awareness. See docs/cache-and-cdn.md for the CF strategy.
+        $this->cache->clean([Product::CACHE_TAG . '_' . $productId]);
     }
 
     /**

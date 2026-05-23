@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ETechFlow\NextDayEligibility\Console\Command;
 
+use ETechFlow\NextDayEligibility\Model\ShippingMethodAvailability;
 use Magento\Shipping\Model\Config\Source\Allmethods;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -34,10 +35,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ListMethodsCommand extends Command
 {
     /**
-     * @param Allmethods $allmethods
+     * @param Allmethods                 $allmethods
+     * @param ShippingMethodAvailability $availability
      */
     public function __construct(
-        private readonly Allmethods $allmethods
+        private readonly Allmethods $allmethods,
+        private readonly ShippingMethodAvailability $availability
     ) {
         parent::__construct();
     }
@@ -105,6 +108,11 @@ class ListMethodsCommand extends Command
             }
             $table->render();
 
+            // v1.6.2 mismatch detection — surface silent no-op misconfigs
+            // before customers complain. Read the three NDE method-code
+            // config fields and diff against the active set built above.
+            $this->renderMismatchReport($output);
+
             $output->writeln('');
             $output->writeln('<info>How to use:</info>');
             $output->writeln(' 1. Copy the codes you want NDE to REMOVE from ineligible carts (next-day / express).');
@@ -123,6 +131,60 @@ class ListMethodsCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Print a coloured diff of configured-vs-active for each NDE rule.
+     */
+    private function renderMismatchReport(OutputInterface $output): void
+    {
+        $all = $this->availability->analyzeAll();
+        $hasAnyConfig = false;
+        $hasAnyMismatch = false;
+
+        foreach ($all as $analysis) {
+            if (!empty($analysis['configured'])) {
+                $hasAnyConfig = true;
+            }
+            if (!empty($analysis['unmatched'])) {
+                $hasAnyMismatch = true;
+            }
+        }
+
+        if (!$hasAnyConfig) {
+            return;
+        }
+
+        $output->writeln('');
+        $output->writeln('<info>NDE configuration vs active methods:</info>');
+
+        foreach ($all as $type => $analysis) {
+            if (empty($analysis['configured'])) {
+                continue;
+            }
+            $label = match ($type) {
+                ShippingMethodAvailability::TYPE_NEXTDAY       => 'Next Day Methods',
+                ShippingMethodAvailability::TYPE_STANDARD      => 'Standard Methods',
+                ShippingMethodAvailability::TYPE_CLICK_COLLECT => 'Click & Collect Methods',
+                default                                        => $type,
+            };
+
+            $output->writeln(sprintf('  <comment>%s</comment>', $label));
+
+            foreach ($analysis['matched'] as $code) {
+                $output->writeln(sprintf('    <info>[OK]</info>   %s', $code));
+            }
+            foreach ($analysis['unmatched'] as $code) {
+                $output->writeln(sprintf('    <error>[WARN]</error> %s — not an active method on this store', $code));
+            }
+        }
+
+        if ($hasAnyMismatch) {
+            $output->writeln('');
+            $output->writeln('<error>One or more configured codes do NOT match any active method.</error>');
+            $output->writeln('  These rules silently do nothing. Fix at Stores → Configuration →');
+            $output->writeln('  eTechFlow → Next Day Eligibility → General Settings.');
+        }
     }
 
     /**

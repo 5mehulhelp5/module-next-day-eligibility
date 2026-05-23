@@ -28,6 +28,21 @@
                 disabled="false" />
     </type>
 
+    <!--
+        v1.6.2: register the admin-header banner that warns merchants when
+        configured NDE method codes don't match shipping methods enabled on
+        this store. Persistent until the config is fixed. Hidden when the
+        module is disabled OR when all codes match (no nag on healthy stores).
+    -->
+    <type name="Magento\AdminNotification\Model\System\MessageList">
+        <arguments>
+            <argument name="messages" xsi:type="array">
+                <item name="etechflow_nde_method_mismatch"
+                      xsi:type="string">ETechFlow\NextDayEligibility\Model\AdminNotice\ShippingMethodMismatchNotice</item>
+            </argument>
+        </arguments>
+    </type>
+
     <!-- Register the v1.4.0 verification command: bin/magento etechflow:nde:verify -->
     <type name="Magento\Framework\Console\CommandList">
         <arguments>

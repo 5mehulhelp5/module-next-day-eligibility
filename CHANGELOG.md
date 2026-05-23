@@ -4,6 +4,46 @@ All notable changes to this module. Adheres to [Semantic Versioning](https://sem
 
 ---
 
+## [1.6.2] — 2026-05-23 — Auto-invalidate FPC after writes + admin UX for misconfigured method codes
+
+Two related quality-of-life fixes shipped together because they both address "the module is doing the right thing but customers can't tell".
+
+### Fixed
+
+- **FPC layer kept serving stale HTML after eligibility writes.** `EligibilityEvaluator::updateProductAttribute()` calls `ProductAction::updateAttributes()`. Magento Core's `catalog_product_attribute_update_after` observer is supposed to invalidate FPC tags when that runs — but it doesn't fire reliably from CLI / cron / plugin contexts (area-not-set issues), so the old `next_day_eligible` value stayed cached at the FPC / Varnish layer until a manual `bin/magento cache:flush`. **Fix:** inject `Magento\Framework\App\CacheInterface` into the evaluator and explicitly `clean(['cat_p_<id>'])` after every attribute update. Surgical per-product — doesn't touch the rest of the FPC namespace. Works for both built-in FPC and Varnish (Magento's `CacheInterface` translates tag-cleans into Varnish BAN requests). No more manual `cache:flush` needed for NDE updates.
+
+### Added
+
+- **Misconfigured-method-code detection — three new surfaces** to catch the silent-no-op class of bug where a merchant configures NDE to restrict shipping codes that aren't actually enabled on the store. (Real example from a Keystation install: `shipping_method_codes` was set to `tablerate_bestway,ups_01,ups_14` — none of those methods were enabled. NDE silently restricted nothing.)
+  - **Admin header banner** (`Model/AdminNotice/ShippingMethodMismatchNotice`) — persistent red banner on every admin page when configured codes don't match active carriers. Lists which codes are unmatched. Hidden when module is disabled or all codes match. Registered via `Magento\AdminNotification\Model\System\MessageList`.
+  - **Inline status panel** under each method-codes field in admin Stores → Configuration. Three render states: muted "Not configured", green "All N codes match", red "X codes unmatched (list)". Pairs with the banner — banner tells you a problem exists from any admin page, inline panel shows the diagnosis where you fix it. Implemented as `Block/Adminhtml/Form/Field/MethodStatusDisplay` (abstract) + three thin subclasses (NextDay / Standard / ClickCollect).
+  - **Extended `bin/magento etechflow:nde:list-methods`** with a "NDE configuration vs active methods" diff after the existing table. `[OK]` / `[WARN]` markers per configured code, final summary line highlighting mismatches.
+  - **Shared helper** `Model/ShippingMethodAvailability.php` — flattens Magento's `Allmethods` source into a Set of active codes and diffs against configured codes for any given rule type (nextday / standard / click-collect). Used by all three surfaces.
+
+- **New docs page `docs/cache-and-cdn.md`** documenting what NDE invalidates automatically (FPC / Varnish per-product tag) and what it can't (Cloudflare — Magento has no native CF awareness). Three CF strategy options with our recommendation (bypass HTML caching at the CF edge).
+
+### Changed
+
+- **`etc/adminhtml/system.xml` sortOrder renumber.** Pre-existing collisions (multiple fields at 23 / 24) in the general group. Renumbered the methods block with clean gaps so the new status displays land in sequence: `shipping_method_codes(20)`, `additional_method_codes(22)`, `nextday_status_display(25)`, `standard_method_codes(30)`, `additional_standard_codes(32)`, `standard_status_display(35)`, `click_collect_method_codes(40)`, `click_collect_additional_codes(42)`, `click_collect_status_display(45)`, `badge_visibility(50)` (was 25). No data migration — sortOrder only affects field display order, stored config values use field paths which are unchanged.
+
+### Migration
+
+```
+composer update etechflow/module-next-day-eligibility
+bin/magento setup:upgrade
+bin/magento setup:di:compile
+bin/magento setup:static-content:deploy -f
+bin/magento cache:flush
+```
+
+After this, you should no longer need `cache:flush` after NDE updates (for the Magento layer — see `docs/cache-and-cdn.md` for Cloudflare). If your admin header shows a red banner about mismatched shipping codes, run `bin/magento etechflow:nde:list-methods` to see what's actually enabled on your store and fix the config at Stores → Configuration → eTechFlow → Next Day Eligibility → General Settings.
+
+### Note on version numbering
+
+Skipped v1.6.1 because v1.6.0 (MSI gap fix) shipped earlier the same day; bundling the FPC fix + admin UX into 1.6.2 keeps the release count tidy.
+
+---
+
 ## [1.6.0] — 2026-05-23 — Close the MSI stock-event propagation gap
 
 A customer found a product (KS00926) with `qty=0` but `next_day_eligible=1` — the existing observer pipeline never recomputed because the stock dropped to zero through a path that doesn't fire `cataloginventory_stock_item_save_after`. Investigation showed this is a systematic gap on Magento 2.3+ with MSI installed, affecting most modern stock-change flows.

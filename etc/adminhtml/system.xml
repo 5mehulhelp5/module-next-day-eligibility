@@ -151,10 +151,20 @@
                         support — they'll have a list of the codes the add-on uses.
                     ]]></comment>
                 </field>
+                <field id="nextday_status_display"
+                       translate="label"
+                       type="label"
+                       sortOrder="25"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label/>
+                    <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\Form\Field\MethodStatusDisplay\NextDay</frontend_model>
+                </field>
                 <field id="standard_method_codes"
                        translate="label comment tooltip"
                        type="multiselect"
-                       sortOrder="23"
+                       sortOrder="30"
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
@@ -190,7 +200,7 @@
                 <field id="additional_standard_codes"
                        translate="label comment tooltip"
                        type="text"
-                       sortOrder="24"
+                       sortOrder="32"
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
@@ -204,10 +214,20 @@
                         every other dropdown on this page under "Custom / Additional Codes".
                     ]]></comment>
                 </field>
+                <field id="standard_status_display"
+                       translate="label"
+                       type="label"
+                       sortOrder="35"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label/>
+                    <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\Form\Field\MethodStatusDisplay\Standard</frontend_model>
+                </field>
                 <field id="click_collect_method_codes"
                        translate="label comment tooltip"
                        type="multiselect"
-                       sortOrder="24"
+                       sortOrder="40"
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
@@ -233,7 +253,7 @@
                 <field id="click_collect_additional_codes"
                        translate="label comment tooltip"
                        type="text"
-                       sortOrder="24"
+                       sortOrder="42"
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
@@ -246,10 +266,20 @@
                         in every other dropdown on this page under "Custom / Additional Codes".
                     ]]></comment>
                 </field>
+                <field id="click_collect_status_display"
+                       translate="label"
+                       type="label"
+                       sortOrder="45"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label/>
+                    <frontend_model>ETechFlow\NextDayEligibility\Block\Adminhtml\Form\Field\MethodStatusDisplay\ClickCollect</frontend_model>
+                </field>
                 <field id="badge_visibility"
                        translate="label comment tooltip"
                        type="select"
-                       sortOrder="25"
+                       sortOrder="50"
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">

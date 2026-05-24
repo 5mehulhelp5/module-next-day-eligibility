@@ -4,6 +4,47 @@ All notable changes to this module. Adheres to [Semantic Versioning](https://sem
 
 ---
 
+## [1.6.5] — 2026-05-24 — Fix v1.6.4 setup-patch early-bail bug (never wrote the legacy supplier-mode pin)
+
+### Fixed
+
+- **v1.6.4 setup patch silently bailed without writing the legacy pin.** `SetSupplierMatchModeLegacyForUpgrades` was supposed to pin upgrade installs to `any_active_qualifying` mode so their storefront behaviour wouldn't silently flip. The patch class registered in `patch_list` (Magento ran it), but never wrote a row to `core_config_data`. Upshot: existing installs upgrading from pre-v1.6.0 silently flipped to first-active-wins semantics on next `setup:upgrade` — exactly the regression the patch was supposed to prevent.
+
+  **Root cause:** the patch's early-exit check used `ScopeConfigInterface::getValue()`, which returns the **merged** config including `config.xml` defaults. Since v1.6.4's `config.xml` defaults `supplier_match_mode` to `first_active_wins`, `getValue()` always returned that string → patch saw a truthy value, thought the merchant had explicitly set it, bailed without writing.
+
+  **Fix:** new class `PinLegacySupplierMatchModeForUpgrades` queries `core_config_data` directly via the connection. That table only contains rows that were explicitly saved (admin or stored-config); config.xml defaults are NEVER persisted to it. So "row exists" correctly answers "merchant explicitly set this".
+
+  **Why a new class instead of fixing the old one in-place:** Magento tracks patch execution by class name in `patch_list`. On installs that already ran the buggy v1.6.4 patch (patch_list row present), updating the v1.6.4 class's logic wouldn't cause Magento to re-run it — patch_list says it ran, Magento skips it forever. A new class name guarantees re-execution on those installs.
+
+  The old class is kept on disk, marked `@deprecated`, its `apply()` method now a no-op. Deleting the file would cause "patch class not found" errors on `setup:upgrade` for installs whose `patch_list` references the old class name.
+
+### Verified
+
+Reproduced on local Magento 2.4.8 Docker:
+
+1. Cleared the manual workaround row from `core_config_data`
+2. Deployed v1.6.5 files
+3. Wiped `generated/` + ran `setup:upgrade`
+4. Confirmed `core_config_data` now contains: `etechflow_nextdayeligibility/drop_ship/supplier_match_mode = any_active_qualifying`
+5. Confirmed `patch_list` has both `199` (old, deprecated) + `200` (new, working) coexisting cleanly
+6. Confirmed `data_version` bumped to `1.6.5`
+
+### Migration
+
+```
+composer update etechflow/module-next-day-eligibility
+bin/magento setup:upgrade
+bin/magento setup:di:compile
+bin/magento setup:static-content:deploy -f
+bin/magento cache:flush
+```
+
+For Keystation specifically (currently on v1.6.0): on next `setup:upgrade`, the new patch will detect upgrade-from-pre-v1.6.5 and write `supplier_match_mode = any_active_qualifying` to `core_config_data`. Storefront behaviour stays at legacy semantics until you flip the admin field to `first_active_wins`.
+
+For merchants who already deployed v1.6.4 and unknowingly had their behaviour flipped to first-active-wins: install v1.6.5, run `setup:upgrade`, the new patch detects no explicit row → writes the legacy pin → behaviour reverts. Storefront pricing / shipping eligibility returns to the pre-v1.6.0 logic.
+
+---
+
 ## [1.6.4] — 2026-05-23 — First-active-wins supplier mode + dropdown attr support + fix v1.6.2 admin-page fatal
 
 Three changes bundled. v1.6.3 was tagged internally with the first two but never published — v1.6.4 supersedes it with the visibility fix included.

@@ -2,7 +2,7 @@
     "name": "etechflow/module-next-day-eligibility",
     "description": "Automatically manages a Next Day Eligible attribute on products based on real-time stock and a per-product Drop-Ship override, and restricts configured next-day shipping methods at checkout when any cart item is not eligible.",
     "type": "magento2-module",
-    "version": "1.6.4",
+    "version": "1.6.5",
     "license": "proprietary",
     "authors": [
         {

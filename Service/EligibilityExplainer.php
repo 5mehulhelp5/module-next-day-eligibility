@@ -141,11 +141,13 @@ class EligibilityExplainer
         $firstActiveQualifies = null;
         $anyActiveQualifying = false;
         $anyActive = false;
+        $orphanedActiveSlots = [];   // active=1 but no supplier name set
 
         foreach ($pairs as $idx => $pair) {
             $active = (bool) $product->getData($pair['active']);
             $names = $this->resolveSupplierNames($product, $pair['name']);
-            $nameDisplay = empty($names) ? '(no name set)' : implode(', ', $names);
+            $hasName = !empty($names);
+            $nameDisplay = $hasName ? implode(', ', $names) : '(no name set)';
 
             $qualifies = false;
             foreach ($names as $candidate) {
@@ -158,7 +160,12 @@ class EligibilityExplainer
             $marker = $active ? '✓ active' : '○ inactive';
             $qualifierTag = '';
             if ($active) {
-                $qualifierTag = $qualifies ? ' — qualifies for next-day' : ' — NOT in qualifying list';
+                if (!$hasName) {
+                    $qualifierTag = ' — ⚠️ active but no supplier name set';
+                    $orphanedActiveSlots[] = $idx + 1;
+                } else {
+                    $qualifierTag = $qualifies ? ' — qualifies for next-day' : ' — NOT in qualifying list';
+                }
             }
 
             $slotLines[] = sprintf(
@@ -184,6 +191,15 @@ class EligibilityExplainer
         }
 
         $reasons = array_merge($reasons, $slotLines);
+
+        if (!empty($orphanedActiveSlots)) {
+            $slotsList = implode(', ', array_map(static fn($i) => "slot {$i}", $orphanedActiveSlots));
+            $notes[] = sprintf(
+                'Data inconsistency: %s ticked active but no supplier name is set. Either pick a supplier name for %s, or untick the active flag.',
+                $slotsList,
+                count($orphanedActiveSlots) === 1 ? 'it' : 'them'
+            );
+        }
 
         $eligible = false;
         $verdict = '';

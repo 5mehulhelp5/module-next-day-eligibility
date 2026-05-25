@@ -4,6 +4,91 @@ All notable changes to this module. Adheres to [Semantic Versioning](https://sem
 
 ---
 
+## [1.7.1] — 2026-05-25 — Hardening after the v1.7.0 deploy incident
+
+v1.7.0 shipped with no new data patches. On the Keystation production
+deploy, `setup:upgrade` hit a `FilesystemIterator` warning during a
+post-patch phase. Because no patches ran, the run aborted before
+`setup_module.data_version` could be advanced. The DbStatusValidator
+then saw `module.xml = 1.7.0` vs `DB = 1.6.5`, treated every request as
+an upgrade-required state, and returned 500. Site down for ~20 minutes
+until rolled back to 1.6.5.
+
+Three defensive changes, ranked by impact:
+
+### Added
+
+- **`Setup/Patch/Data/V171ReleaseMarker.php`** — no-op release marker
+  patch. Establishes the discipline that every NDE release ships at
+  least one data patch, even if it has nothing to do. Future releases
+  rename/copy this template (`V172ReleaseMarker`, etc). Existence of a
+  `patch_list` row makes the patch phase always run something —
+  surfaces FS / permissions / DI errors earlier and more visibly.
+- **Active-but-no-name warning in the live "Why?" panel.** When a
+  supplier slot has its active flag ticked but the name attribute is
+  null/empty, the explainer now adds a yellow "Data inconsistency"
+  note to the merchant's product edit page panel — e.g. "slot 3 ticked
+  active but no supplier name is set." No save blocking, no API
+  surprises — just visible feedback in the place merchants already look.
+
+### Changed
+
+- **`Model/Config/Backend/QualifyingSuppliers.php`** — new backend
+  model wired to the Qualifying Supplier Names textarea. Trims
+  whitespace, drops blank/comment lines on save. Does NOT fuzzy-match
+  against EAV options (that's lossy and confusing); the resolver's
+  existing case-insensitive trim-on-read still handles "Onlyda" vs
+  "OnlyDa" the same as before.
+
+### Not changed (deliberately)
+
+- **No schema changes, no API changes** — drop-in upgrade from 1.7.0
+- No reject-on-save validation added (would break bulk-import paths
+  and the SupplierAutoflow plugin's flag-flipping flow). Soft warnings
+  in the Why? panel are the chosen UX.
+- No fuzzy-matching of qualifying supplier names against EAV options
+  (would silently mutate merchant input).
+
+### Files added
+
+```
+Setup/Patch/Data/V171ReleaseMarker.php
+Model/Config/Backend/QualifyingSuppliers.php
+```
+
+### Files modified
+
+```
+Service/EligibilityExplainer.php   (orphaned-slot warning)
+etc/adminhtml/system.xml           (qualifying_suppliers backend_model)
+etc/module.xml                     (1.7.0 → 1.7.1)
+composer.json                      (1.7.0 → 1.7.1)
+```
+
+### Upgrade — and the new procedure
+
+```bash
+composer require etechflow/module-next-day-eligibility:^1.7.1
+bin/magento setup:upgrade
+# Watch this output. If you see ANY warnings here, stop and investigate
+# before flushing cache — DbStatusValidator will block requests if the
+# upgrade didn't reach data_version bump.
+bin/magento setup:di:compile
+bin/magento setup:static-content:deploy -f
+bin/magento cache:flush
+```
+
+**Pre-flight check after upgrade:**
+```sql
+SELECT module, schema_version, data_version FROM setup_module
+WHERE module='ETechFlow_NextDayEligibility';
+```
+If `data_version < module.xml setup_version`, the upgrade did NOT
+complete. Re-run `setup:upgrade` — do NOT flush cache yet, or you'll
+trigger the same 500 the v1.7.0 incident produced.
+
+---
+
 ## [1.7.0] — 2026-05-24 — Plain-English supplier mode + live "Why?" panel
 
 The supplier mode worked but was hard to reason about. Merchants had to mentally trace through three settings (Supplier Pairs, Qualifying Suppliers, Match Mode) plus per-product flags to figure out why a given product was eligible or not. This release keeps every capability and makes them readable.

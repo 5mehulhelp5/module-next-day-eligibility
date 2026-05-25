@@ -447,6 +447,7 @@ s3_active:s3</pre>
                        showInWebsite="1"
                        showInStore="1">
                     <label>Qualifying Supplier Names</label>
+                    <backend_model>ETechFlow\NextDayEligibility\Model\Config\Backend\QualifyingSuppliers</backend_model>
                     <depends>
                         <field id="source">supplier</field>
                     </depends>

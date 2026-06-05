@@ -129,13 +129,22 @@ class IneligibilityChecker
         );
 
         // Filter to rows where the product is out of local stock by any
-        // of the three criteria above.
+        // of the three criteria above. Qualify with the joinField() aliases:
+        // both joins target cataloginventory_stock_item (at_qty + at_is_in_stock),
+        // so an unqualified `qty`/`is_in_stock` is ambiguous once both joins
+        // are present (SQLSTATE 1052).
         $collection->getSelect()->where(
-            'qty <= 0 OR is_in_stock = 0 OR is_in_stock IS NULL'
+            'at_qty.qty <= 0 OR at_is_in_stock.is_in_stock = 0 OR at_is_in_stock.is_in_stock IS NULL'
         );
         $collection->setPageSize(1);
 
-        return $collection->getSize() > 0;
+        // Count via getItems() rather than getSize(): getSize() builds a separate
+        // COUNT query (getSelectCountSql) that resets the column list and drops the
+        // column-only joinField() LEFT JOINs, while the raw where() above survives —
+        // so the COUNT references qty/is_in_stock columns that no longer exist
+        // (SQLSTATE 42S22). The main SELECT keeps the joins; setPageSize(1) still
+        // caps the work to a single row.
+        return count($collection->getItems()) > 0;
     }
 
     /**

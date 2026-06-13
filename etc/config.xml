@@ -16,11 +16,6 @@
                 <revoked>0</revoked>
                 <ip_blocked>0</ip_blocked>
             </license>
-            <payment>
-                <stripe_secret_key></stripe_secret_key>
-                <stripe_publishable_key></stripe_publishable_key>
-                <stripe_currency>usd</stripe_currency>
-            </payment>
             <general>
                 <enabled>1</enabled>
                 <shipping_method_codes></shipping_method_codes>

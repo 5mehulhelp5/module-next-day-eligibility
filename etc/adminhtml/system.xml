@@ -62,34 +62,6 @@
                 </field>
             </group>
 
-            <group id="payment" translate="label" type="text" sortOrder="7"
-                   showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Payment (Stripe)</label>
-                <comment>Add your Stripe REST API credentials to enable "Select Plan &amp; Pay" on the gate page. Get them at https://dashboard.stripe.com/test/apikeys.</comment>
-
-                <field id="stripe_secret_key" translate="label" type="obscure"
-                       sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Stripe Secret Key</label>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                    <comment><![CDATA[
-                        <code>sk_test_...</code> or <code>sk_live_...</code>. Stored encrypted by Magento.
-                    ]]></comment>
-                </field>
-
-                <field id="stripe_publishable_key" translate="label" type="text"
-                       sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Stripe Publishable Key</label>
-                    <comment><![CDATA[
-                        <code>pk_test_...</code> or <code>pk_live_...</code>. Public — safe to display.
-                    ]]></comment>
-                </field>
-
-                <field id="stripe_currency" translate="label" type="text"
-                       sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Currency</label>
-                    <comment><![CDATA[Three-letter Stripe currency code, lowercase. Default: <code>usd</code>.]]></comment>
-                </field>
-            </group>
 
             <group id="general"
                    translate="label"

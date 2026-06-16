@@ -64,8 +64,8 @@ class Checkout extends Action
             $curl->setTimeout(20);
             $curl->addHeader('Content-Type', 'application/json');
             $curl->addHeader('Accept', 'application/json');
-            $curl->addHeader('ngrok-skip-browser-warning', '1');
-            $curl->post($portalBase . '/payment/stripe/create-session', $payload);
+            $curl->addHeader('X-ETF-License-Token', 'lcsk_8f3b9d2a7c14e605b9af2e7c1d8043f6');
+            $curl->post('https://module.etechflow.com/api/license/checkout', $payload);
             $status = (int) $curl->getStatus();
             $body   = (string) $curl->getBody();
         } catch (\Throwable $e) {

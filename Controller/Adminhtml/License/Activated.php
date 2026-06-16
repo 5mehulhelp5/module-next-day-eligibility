@@ -68,8 +68,8 @@ class Activated extends Action
             $curl->setTimeout(25);
             $curl->addHeader('Content-Type', 'application/json');
             $curl->addHeader('Accept', 'application/json');
-            $curl->addHeader('ngrok-skip-browser-warning', '1');
-            $curl->post($portal . '/license/activate', $payload);
+            $curl->addHeader('X-ETF-License-Token', 'lcsk_8f3b9d2a7c14e605b9af2e7c1d8043f6');
+            $curl->post('https://module.etechflow.com/api/license/result', $payload);
             $status = (int) $curl->getStatus();
             $body   = (string) $curl->getBody();
             $data   = json_decode($body, true);

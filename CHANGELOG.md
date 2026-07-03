@@ -4,6 +4,34 @@ All notable changes to this module. Adheres to [Semantic Versioning](https://sem
 
 ---
 
+## [1.8.1] — 2026-07-03 — Security: portal-only licensing (removes forgeable key path)
+
+Closes a licensing bypass. Previous versions shipped the HMAC signing secret
+inside `LicenseValidator` and validated a locally-computed key against it, so
+anyone with the module source could compute a valid key for their own domain
+and run the module unlicensed. A second bypass let the client-settable
+"locally issued" 48-hour grace (`issued_key`/`issued_domain`/
+`stripe_session_id`/`issued_at`) activate the module whenever the portal was
+unreachable — all fields the customer controls.
+
+### Changed (security)
+
+- **Validation is now portal-only.** `isValid()` honours a key only when the
+  ETechFlow portal confirms it. The module ships no signing secret.
+- **Removed** `computeKey()`, `computeBundleKey()`, the `SECRET_FRAGMENTS` /
+  `BUNDLE_SECRET_FRAGMENTS` constants, and the legacy HMAC/bundle validation
+  branches.
+- **Offline grace is now un-forgeable.** It derives solely from a cached,
+  genuine portal "valid" response (refreshed on every success, 48 h TTL), never
+  from admin config. An explicit portal reject clears it immediately.
+- Bundle subscriptions continue to work via a portal-issued `SP-` bundle key.
+
+> Upgrade note: existing HMAC (`v1.7.x`) licences are no longer accepted —
+> re-activate via the portal to obtain an `SP-` key. Dev-host detection remains
+> for the admin status banner only and grants no bypass.
+
+---
+
 ## [1.8.0] — 2026-06-03 — Stripe portal licensing + admin gate page
 
 Adds Stripe Checkout subscription flow gated by the eTechFlow licensing

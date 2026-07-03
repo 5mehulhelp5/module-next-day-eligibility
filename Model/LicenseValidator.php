@@ -11,24 +11,27 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
- * Hybrid HMAC + portal license validator for ETechFlow_NextDayEligibility.
+ * Portal license validator for ETechFlow_NextDayEligibility.
  * Follows PORTAL_LICENSING_GUIDE.md §3-step-1.
  *
  *   isValid() priority:
  *     1. revoked = 1                       → false (portal revoke wins even in dev)
  *     2. production_environment = No       → true (dev bypass)
  *     3. SP-XXXX key, portal answers       → portal's answer is final (true/false)
- *     4. SP-XXXX key, portal unreachable   → 48h local grace fallback
- *     5. Legacy HMAC per-module key        → hash_equals(computeKey(host), key)
- *     6. Bundle key                        → hash_equals(computeBundleKey(host), key)
- *     7. otherwise                         → false
+ *     4. SP-XXXX key, portal unreachable   → cached-success grace (48h)
+ *     5. otherwise                         → false
+ *
+ *   The signing secret lives ONLY on the portal. The module holds no secret and
+ *   cannot mint a valid key, so a customer cannot forge a licence for their own
+ *   domain. Offline grace is derived solely from a cached, genuine portal
+ *   "valid" response — never from admin-settable config — so it cannot be
+ *   fabricated either.
  *
  *   The portal-first ordering (changed 2026-06-02) is what makes IP-revocation
  *   work: when the admin removes a server's IP from the portal subscription,
  *   /license/validate returns HTTP 403 with valid:false, which counts as an
- *   "explicit reject" and locks the module immediately. The 48h grace only
- *   kicks in when the curl call literally cannot reach the portal (timeout,
- *   network error, missing portal URL).
+ *   "explicit reject" and locks the module immediately. Grace only applies when
+ *   the portal literally cannot be reached (timeout, network error, no URL).
  */
 class LicenseValidator
 {
@@ -40,25 +43,10 @@ class LicenseValidator
     public const XML_PATH_BUNDLE_LICENSE_KEY = 'etechflow_bundle/license/license_key';
 
     private const MODULE_ID = 'next-day-eligibility';
-    private const BUNDLE_ID = 'etechflow-bundle';
-
-    // PRESERVED from original v1.2.3 LicenseValidator — keeps bundle/HMAC compatibility (LICENSING_PROTOCOL.md).
-    private const SECRET_FRAGMENTS = [
-        'eTF-NDE-2026',
-        'a8c2-fE4d',
-        '7B9k-Lm3p',
-        'Q5xW-yH8r',
-    ];
-
-    private const BUNDLE_SECRET_FRAGMENTS = [
-        'eTF-BUNDLE-2026',
-        'k2D9-mP4x',
-        'L8nR-vH2j',
-        'X7tY-zW5q',
-    ];
 
     private const CACHE_TTL_VALID  = 60; // portal said valid → cache 60s so admin IP-removal propagates within 1 minute (per PORTAL_LICENSING_GUIDE.md PORTAL_CACHE_TTL)
     private const CACHE_TTL_REJECT = 60; // portal said NO → recheck within 1 minute so re-authorisation propagates fast
+    private const GRACE_TTL        = 172800; // 48h offline grace, refreshed on every portal success
     private const CACHE_TAG = 'etechflow_nde_license';
 
     public function __construct(
@@ -84,33 +72,37 @@ class LicenseValidator
             return true;
         }
 
+        // A per-module SP- key, or failing that a bundle-wide SP- key. Both are
+        // portal-issued and portal-validated; the module never signs anything.
         $configuredKey = $this->getConfiguredKey();
-
-        if (str_starts_with($configuredKey, 'SP-')) {
-            // Portal answer wins: explicit accept/reject is honoured immediately.
-            // The 48h local grace is only a fallback for the portal being unreachable
-            // (so a network blip doesn't black-hole live storefronts) — it MUST NOT
-            // mask an explicit reject, otherwise admin IP removal would not lock the module.
-            $portalAnswer = $this->validateViaPortal($host, $configuredKey);
-            if ($portalAnswer === true) {
-                return true;
-            }
-            if ($portalAnswer === false) {
-                return false;
-            }
-            return $this->isLocallyIssuedKey($configuredKey, $host);
+        if (!str_starts_with($configuredKey, 'SP-')) {
+            $configuredKey = $this->getConfiguredBundleKey();
         }
 
-        if ($configuredKey !== '' && hash_equals($this->computeKey($host), $configuredKey)) {
+        // SECURITY: only portal-issued (SP-) keys are honoured. The former
+        // "legacy HMAC" fallbacks computed a key from a secret that shipped in
+        // this file — anyone with the module could forge a valid key for their
+        // own domain, so they were removed. The former client-settable 48h
+        // grace (issued_key/issued_domain/stripe_session_id/issued_at) was
+        // removed for the same reason: every input lived in admin config the
+        // customer controls. Offline grace now comes only from a cached genuine
+        // portal success, which the customer cannot fabricate.
+        if (!str_starts_with($configuredKey, 'SP-')) {
+            return false;
+        }
+
+        $portalAnswer = $this->validateViaPortal($host, $configuredKey);
+        if ($portalAnswer === true) {
             return true;
         }
-
-        $bundleKey = $this->getConfiguredBundleKey();
-        if ($bundleKey !== '' && hash_equals($this->computeBundleKey($host), $bundleKey)) {
-            return true;
+        if ($portalAnswer === false) {
+            return false;
         }
 
-        return false;
+        // Portal unreachable → honour the grace window if a genuine prior
+        // success is still cached. A network blip won't black-hole live
+        // storefronts, but nothing the customer can set grants this.
+        return $this->hasValidGrace($host, $configuredKey);
     }
 
     /**
@@ -164,12 +156,18 @@ class LicenseValidator
                 [self::CACHE_TAG],
                 $valid ? self::CACHE_TTL_VALID : self::CACHE_TTL_REJECT
             );
+            if ($valid) {
+                $this->writeGrace($host, $licenseKey);
+            } else {
+                $this->clearGrace($host, $licenseKey);
+            }
             return $valid;
         }
 
         if ($status === 401 || $status === 403) {
             // Portal answered and said NO (e.g. IP revoked, subscription suspended, key revoked).
             $this->cache->save('0', $cacheKey, [self::CACHE_TAG], self::CACHE_TTL_REJECT);
+            $this->clearGrace($host, $licenseKey);
             return false;
         }
 
@@ -190,20 +188,39 @@ class LicenseValidator
         return '';
     }
 
-    public function computeKey(string $host): string
+    /**
+     * Offline grace is keyed to a host+key pair and only ever written by a
+     * genuine portal success (see validateViaPortal). The customer cannot set
+     * this cache entry, so grace cannot be forged.
+     */
+    private function graceCacheKey(string $host, string $licenseKey): string
     {
-        $payload = $this->canonicalize($host) . ':' . self::MODULE_ID;
-        $secret  = implode('', self::SECRET_FRAGMENTS);
-        $raw     = hash_hmac('sha256', $payload, $secret, true);
-        return rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+        return 'etf_nde_lic_grace_' . md5($this->canonicalize($host) . ':' . $licenseKey);
     }
 
-    public function computeBundleKey(string $host): string
+    private function writeGrace(string $host, string $licenseKey): void
     {
-        $payload = $this->canonicalize($host) . ':' . self::BUNDLE_ID;
-        $secret  = implode('', self::BUNDLE_SECRET_FRAGMENTS);
-        $raw     = hash_hmac('sha256', $payload, $secret, true);
-        return rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+        $this->cache->save(
+            (string) time(),
+            $this->graceCacheKey($host, $licenseKey),
+            [self::CACHE_TAG],
+            self::GRACE_TTL
+        );
+    }
+
+    private function clearGrace(string $host, string $licenseKey): void
+    {
+        $this->cache->remove($this->graceCacheKey($host, $licenseKey));
+    }
+
+    private function hasValidGrace(string $host, string $licenseKey): bool
+    {
+        $stamp = $this->cache->load($this->graceCacheKey($host, $licenseKey));
+        if ($stamp === false || $stamp === '' || $stamp === null) {
+            return false;
+        }
+        // Belt-and-braces: don't trust the backend's TTL alone.
+        return (time() - (int) $stamp) < self::GRACE_TTL;
     }
 
     private function canonicalize(string $host): string
@@ -231,11 +248,6 @@ class LicenseValidator
     {
         // Sandbox toggle removed: production licensing is always enforced.
         return true;
-        $value = $this->scopeConfig->getValue(self::XML_PATH_PRODUCTION_ENVIRONMENT, ScopeInterface::SCOPE_STORE);
-        if ($value === null || $value === '') {
-            return true;
-        }
-        return (bool) $value;
     }
 
     public function getCurrentHost(): string
@@ -249,17 +261,17 @@ class LicenseValidator
         }
     }
 
+    /**
+     * Classifies a host as dev/staging. Used ONLY by the admin status banner
+     * for an informational hint — it is deliberately NOT consulted by isValid(),
+     * so it can never grant a licensing bypass. Ships no secret.
+     */
     public function isDevHost(?string $host = null): bool
     {
         $check = $host !== null ? strtolower(trim($host)) : $this->canonicalize($this->getCurrentHost());
         return $this->isDevelopmentHost($check);
     }
 
-    /**
-     * Per guide gotcha L: REMOVED the hyphen-regex that false-matched
-     * magento-dev.etechflow.com (and similar `*-dev.*` prod hosts).
-     * ADDED .ngrok-free.dev to tunnel suffixes.
-     */
     private function isDevelopmentHost(string $host): bool
     {
         if ($host === 'localhost' || str_starts_with($host, '127.')) return true;
@@ -275,27 +287,6 @@ class LicenseValidator
             if (str_ends_with($host, $s)) return true;
         }
         return false;
-    }
-
-    private function isLocallyIssuedKey(string $key, string $host): bool
-    {
-        $issuedKey = trim((string) $this->scopeConfig->getValue('etechflow_nextdayeligibility/license/issued_key'));
-        if ($issuedKey === '' || !hash_equals($issuedKey, $key)) {
-            return false;
-        }
-        $issuedDomain = trim((string) $this->scopeConfig->getValue('etechflow_nextdayeligibility/license/issued_domain'));
-        if ($issuedDomain === '' || $this->canonicalize($issuedDomain) !== $this->canonicalize($host)) {
-            return false;
-        }
-        $sessionId = trim((string) $this->scopeConfig->getValue('etechflow_nextdayeligibility/license/stripe_session_id'));
-        if ($sessionId === '') {
-            return false;
-        }
-        $issuedAt = (int) $this->scopeConfig->getValue('etechflow_nextdayeligibility/license/issued_at');
-        if ($issuedAt === 0) {
-            return false;
-        }
-        return (time() - $issuedAt) < 172800; // 48-hour grace
     }
 
     private function isExplicitlyRevoked(): bool

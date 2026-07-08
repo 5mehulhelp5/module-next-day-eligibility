@@ -21,7 +21,10 @@
 <style>
     .etechflow-nextday-badge {
         margin: 8px 0 12px;
-        display: inline-block;
+        /* Block + clear so the Luma review-summary (which is float:left) cannot
+           pull up beside this badge and overlap it at wider viewports. */
+        display: block;
+        clear: both;
     }
     .etechflow-nextday-badge__status {
         display: inline-block;

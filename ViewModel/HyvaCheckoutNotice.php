@@ -113,6 +113,24 @@ class HyvaCheckoutNotice implements ArgumentInterface
     }
 
     /**
+     * Notice style type ('warning' | 'info' | 'error').
+     *
+     * Used to attach the semantic modifier class (etechflow-nextday-notice--*)
+     * so the inline critical-CSS fallback can colour the notice even when the
+     * store's compiled Tailwind build omits this module's utility classes —
+     * e.g. a dev store serving static borrowed from a production build that
+     * predates the module.
+     *
+     * @return string
+     */
+    public function getStyleType(): string
+    {
+        $style = $this->config->getNoticeStyle();
+
+        return in_array($style, ['info', 'error'], true) ? $style : 'warning';
+    }
+
+    /**
      * Notice style classes (Tailwind utilities with dark-mode variants).
      *
      * @return array{container:string, icon:string, ring:string}

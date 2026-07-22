@@ -42,7 +42,19 @@ if ($alreadyRendered) {
 $alreadyRendered = true;
 
 $styles = $viewModel->getStyleClasses();
+$styleType = $viewModel->getStyleType();
 ?>
+<?php /* Inline critical CSS — guarantees the notice's box + colour even when the store's
+         compiled Tailwind build does not include this module's colour utility classes
+         (e.g. a dev store serving borrowed production static, where getStyleClasses()'
+         classes were never built). :where() has 0 specificity, so a Tailwind class that IS
+         present always wins and appearance is unchanged; these rules only fill the gap. */ ?>
+<style>
+    :where(.etechflow-nextday-notice){display:flex;align-items:flex-start;gap:12px;padding:16px;margin:0 0 24px;border-radius:6px;border-left-width:4px;border-left-style:solid;box-shadow:0 1px 2px rgba(0,0,0,.05);font-size:14px;line-height:1.5}
+    :where(.etechflow-nextday-notice--warning){background-color:#fff8e1;border-left-color:#f57c00;color:#5d4037}
+    :where(.etechflow-nextday-notice--info){background-color:#e3f2fd;border-left-color:#1976d2;color:#0d47a1}
+    :where(.etechflow-nextday-notice--error){background-color:#fce4ec;border-left-color:#c62828;color:#b71c1c}
+</style>
 <div x-data="{ visible: true, show: false }"
      x-init="$nextTick(() => show = true)"
      x-show="visible && show"
@@ -55,7 +67,7 @@ $styles = $viewModel->getStyleClasses();
      x-transition:leave-end="motion-safe:opacity-0"
      role="alert"
      aria-live="assertive"
-     class="etechflow-nextday-notice border-l-4 rounded-md p-4 mb-6 flex items-start gap-3 shadow-sm <?= $escaper->escapeHtmlAttr($styles['container']) ?>">
+     class="etechflow-nextday-notice etechflow-nextday-notice--<?= $escaper->escapeHtmlAttr($styleType) ?> border-l-4 rounded-md p-4 mb-6 flex items-start gap-3 shadow-sm <?= $escaper->escapeHtmlAttr($styles['container']) ?>">
 
     <!-- Warning triangle (Heroicons solid) -->
     <svg class="w-6 h-6 flex-shrink-0 mt-0.5 <?= $escaper->escapeHtmlAttr($styles['icon']) ?>"

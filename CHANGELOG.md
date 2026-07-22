@@ -27,6 +27,11 @@ promising a delivery speed the shelf couldn't meet.
   the previous behaviour.
 - The Luma (`ConfigProvider`) and Hyvä (`HyvaCheckoutNotice`) checkout notices
   fire on the same condition, so the banner stays in sync with the restriction.
+- The Hyvä checkout notice now ships **inline critical CSS** (zero-specificity
+  `:where()` rules + a semantic `etechflow-nextday-notice--*` modifier class) so
+  it stays correctly coloured even when the store's compiled Tailwind build does
+  not include this module's utility classes. A present Tailwind class always
+  wins, so existing themes are visually unchanged.
 
 ### Requirements
 

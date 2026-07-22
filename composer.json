@@ -26,7 +26,8 @@
         "magento/module-configurable-product": "^100.4||^101.0",
         "magento/module-grouped-product": "^100.4||^101.0",
         "magento/module-bundle": "^101.0||^102.0",
-        "magento/module-eav": "^102.1||^103.0"
+        "magento/module-eav": "^102.1||^103.0",
+        "magento/module-inventory-sales-api": "^1.2"
     },
     "suggest": {
         "hyva-themes/magento2-default-theme": "Hyvä Theme support is built in — install Hyvä to enable Tailwind-styled templates automatically.",

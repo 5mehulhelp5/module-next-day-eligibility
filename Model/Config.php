@@ -16,6 +16,7 @@ class Config
     private const XML_PATH_ADDITIONAL_STANDARD_CODES    = 'etechflow_nextdayeligibility/general/additional_standard_codes';
     private const XML_PATH_CC_METHOD_CODES              = 'etechflow_nextdayeligibility/general/click_collect_method_codes';
     private const XML_PATH_CC_ADDITIONAL_CODES          = 'etechflow_nextdayeligibility/general/click_collect_additional_codes';
+    private const XML_PATH_RESTRICT_INSUFFICIENT_SALABLE = 'etechflow_nextdayeligibility/general/restrict_insufficient_salable';
     private const XML_PATH_LABEL_YES = 'etechflow_nextdayeligibility/general/label_yes';
     private const XML_PATH_LABEL_NO = 'etechflow_nextdayeligibility/general/label_no';
     private const XML_PATH_AUTO_ENABLE_BACKORDERS = 'etechflow_nextdayeligibility/drop_ship/auto_enable_backorders';
@@ -84,6 +85,26 @@ class Config
 
         return $this->scopeConfig->isSetFlag(
             self::XML_PATH_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Whether to restrict next-day + Click & Collect when a cart line requests
+     * more units than are actually salable (stock − MSI reservations − OOS
+     * threshold). New in v1.9.0; defaults to Yes.
+     *
+     * The master {@see self::isEnabled()} switch already gates callers, so this
+     * flag is a plain read with no license check.
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isRestrictOnInsufficientSalable(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_RESTRICT_INSUFFICIENT_SALABLE,
             ScopeInterface::SCOPE_STORE,
             $storeId
         );

@@ -7,6 +7,7 @@ namespace ETechFlow\NextDayEligibility\Test\Unit\Plugin;
 use ETechFlow\NextDayEligibility\Model\BackorderChecker;
 use ETechFlow\NextDayEligibility\Model\Config;
 use ETechFlow\NextDayEligibility\Model\IneligibilityChecker;
+use ETechFlow\NextDayEligibility\Model\SalableStockChecker;
 use ETechFlow\NextDayEligibility\Plugin\ShippingRestriction;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Address\Rate;
@@ -33,6 +34,9 @@ class ShippingRestrictionTest extends TestCase
     /** @var BackorderChecker|MockObject */
     private BackorderChecker|MockObject $backorderChecker;
 
+    /** @var SalableStockChecker|MockObject */
+    private SalableStockChecker|MockObject $salableStockChecker;
+
     /** @var LoggerInterface|MockObject */
     private LoggerInterface|MockObject $logger;
 
@@ -44,12 +48,14 @@ class ShippingRestrictionTest extends TestCase
         $this->config               = $this->createMock(Config::class);
         $this->ineligibilityChecker = $this->createMock(IneligibilityChecker::class);
         $this->backorderChecker     = $this->createMock(BackorderChecker::class);
+        $this->salableStockChecker  = $this->createMock(SalableStockChecker::class);
         $this->logger               = $this->createMock(LoggerInterface::class);
 
         $this->plugin = new ShippingRestriction(
             $this->config,
             $this->ineligibilityChecker,
             $this->backorderChecker,
+            $this->salableStockChecker,
             $this->logger
         );
     }
@@ -395,5 +401,84 @@ class ShippingRestrictionTest extends TestCase
         $this->assertArrayHasKey('flatrate', $result);
         $this->assertArrayNotHasKey('ups', $result);
         $this->assertArrayNotHasKey('fedex', $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // v1.9.0: salable-stock shortfall (reservation-aware)
+    // -------------------------------------------------------------------------
+
+    public function testSalableShortfallRemovesNextDayAndClickCollect(): void
+    {
+        $this->config->method('isEnabled')->willReturn(true);
+        $this->config->method('getShippingMethodCodes')->willReturn(['flatrate_flatrate']);
+        $this->config->method('getClickCollectMethodCodes')->willReturn(['instore_pickup']);
+        $this->config->method('getStandardMethodCodes')->willReturn([]);
+        $this->config->method('isRestrictExpressOnBackorder')->willReturn(false);
+        $this->config->method('isRestrictOnInsufficientSalable')->willReturn(true);
+        // Cart is otherwise eligible and locally in stock — only the salable
+        // shortfall (reservations) trips the rule.
+        $this->ineligibilityChecker->method('hasIneligibleItems')->willReturn(false);
+        $this->ineligibilityChecker->method('hasItemsWithoutLocalStock')->willReturn(false);
+        $this->salableStockChecker->method('hasShortfall')->willReturn(true);
+
+        $rates = [
+            'flatrate'  => [$this->buildRate('flatrate', 'flatrate')],
+            'instore'   => [$this->buildRate('instore', 'pickup')],
+            'tablerate' => [$this->buildRate('tablerate', 'bestway')],
+        ];
+
+        $result = $this->plugin->afterGetGroupedAllShippingRates($this->buildAddress(), $rates);
+
+        $this->assertArrayNotHasKey('flatrate', $result, 'next-day method removed on shortfall');
+        $this->assertArrayNotHasKey('instore', $result, 'pickup method removed on shortfall');
+        $this->assertArrayHasKey('tablerate', $result, 'standard method kept');
+    }
+
+    public function testSalableShortfallToggleOffSkipsChecker(): void
+    {
+        $this->config->method('isEnabled')->willReturn(true);
+        $this->config->method('getShippingMethodCodes')->willReturn(['flatrate_flatrate']);
+        $this->config->method('getClickCollectMethodCodes')->willReturn([]);
+        $this->config->method('getStandardMethodCodes')->willReturn([]);
+        $this->config->method('isRestrictExpressOnBackorder')->willReturn(false);
+        $this->config->method('isRestrictOnInsufficientSalable')->willReturn(false);
+        $this->ineligibilityChecker->method('hasIneligibleItems')->willReturn(false);
+
+        // Toggle off — the checker must never be consulted.
+        $this->salableStockChecker->expects($this->never())->method('hasShortfall');
+
+        $rates = ['flatrate' => [$this->buildRate('flatrate', 'flatrate')]];
+        $result = $this->plugin->afterGetGroupedAllShippingRates($this->buildAddress(), $rates);
+
+        $this->assertSame($rates, $result);
+    }
+
+    public function testSalableShortfallInWhitelistModePullsPickup(): void
+    {
+        $this->config->method('isEnabled')->willReturn(true);
+        // Whitelist engaged (standard codes set + ineligible cart). Pickup is in
+        // the whitelist but must still drop off on a salable shortfall.
+        $this->config->method('getStandardMethodCodes')->willReturn(['flatrate_flatrate', 'instore_pickup']);
+        $this->config->method('getShippingMethodCodes')->willReturn([]);
+        $this->config->method('getClickCollectMethodCodes')->willReturn(['instore_pickup']);
+        $this->config->method('isRestrictExpressOnBackorder')->willReturn(false);
+        $this->config->method('isRestrictOnInsufficientSalable')->willReturn(true);
+        $this->ineligibilityChecker->method('hasIneligibleItems')->willReturn(true);
+        $this->ineligibilityChecker->method('hasItemsWithoutLocalStock')->willReturn(false);
+        $this->salableStockChecker->method('hasShortfall')->willReturn(true);
+
+        $rates = [
+            'flatrate' => [$this->buildRate('flatrate', 'flatrate')],
+            'instore'  => [$this->buildRate('instore', 'pickup')],
+            'ups'      => [$this->buildRate('ups', 'NextDayAir')],
+        ];
+
+        $result = $this->plugin->afterGetGroupedAllShippingRates($this->buildAddress(), $rates);
+
+        // flatrate kept (whitelisted, salable); instore dropped (shortfall);
+        // ups dropped (not whitelisted).
+        $this->assertArrayHasKey('flatrate', $result);
+        $this->assertArrayNotHasKey('instore', $result);
+        $this->assertArrayNotHasKey('ups', $result);
     }
 }

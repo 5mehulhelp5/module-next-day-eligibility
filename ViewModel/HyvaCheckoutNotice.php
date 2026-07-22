@@ -7,6 +7,7 @@ namespace ETechFlow\NextDayEligibility\ViewModel;
 use ETechFlow\NextDayEligibility\Model\BackorderChecker;
 use ETechFlow\NextDayEligibility\Model\Config;
 use ETechFlow\NextDayEligibility\Model\IneligibilityChecker;
+use ETechFlow\NextDayEligibility\Model\SalableStockChecker;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Psr\Log\LoggerInterface;
@@ -29,6 +30,7 @@ class HyvaCheckoutNotice implements ArgumentInterface
      * @param Config               $config
      * @param IneligibilityChecker $ineligibilityChecker
      * @param BackorderChecker     $backorderChecker
+     * @param SalableStockChecker  $salableStockChecker
      * @param CheckoutSession      $checkoutSession
      * @param LoggerInterface      $logger
      */
@@ -36,6 +38,7 @@ class HyvaCheckoutNotice implements ArgumentInterface
         private readonly Config $config,
         private readonly IneligibilityChecker $ineligibilityChecker,
         private readonly BackorderChecker $backorderChecker,
+        private readonly SalableStockChecker $salableStockChecker,
         private readonly CheckoutSession $checkoutSession,
         private readonly LoggerInterface $logger
     ) {
@@ -67,6 +70,14 @@ class HyvaCheckoutNotice implements ArgumentInterface
             if ($this->config->isRestrictExpressOnBackorder()
                 && !empty($this->config->getBackorderExpressMethodCodes())
                 && $this->backorderChecker->hasBackorderItems($items)
+            ) {
+                return true;
+            }
+
+            // Rule 3 (v1.9.0): salable-stock shortfall — a line requests more
+            // than is salable from the shelf (reservation-aware).
+            if ($this->config->isRestrictOnInsufficientSalable()
+                && $this->salableStockChecker->hasShortfall($items)
             ) {
                 return true;
             }

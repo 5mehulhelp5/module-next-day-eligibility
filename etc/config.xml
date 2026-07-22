@@ -25,6 +25,7 @@
                 <additional_method_codes></additional_method_codes>
                 <click_collect_method_codes></click_collect_method_codes>
                 <click_collect_additional_codes></click_collect_additional_codes>
+                <restrict_insufficient_salable>1</restrict_insufficient_salable>
             </general>
             <drop_ship>
                 <source>flag</source>

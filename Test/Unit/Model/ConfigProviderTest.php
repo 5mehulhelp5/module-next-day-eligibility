@@ -8,6 +8,7 @@ use ETechFlow\NextDayEligibility\Model\BackorderChecker;
 use ETechFlow\NextDayEligibility\Model\Config;
 use ETechFlow\NextDayEligibility\Model\ConfigProvider;
 use ETechFlow\NextDayEligibility\Model\IneligibilityChecker;
+use ETechFlow\NextDayEligibility\Model\SalableStockChecker;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Quote\Model\Quote;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -33,6 +34,9 @@ class ConfigProviderTest extends TestCase
     /** @var BackorderChecker|MockObject */
     private BackorderChecker|MockObject $backorderChecker;
 
+    /** @var SalableStockChecker|MockObject */
+    private SalableStockChecker|MockObject $salableStockChecker;
+
     /** @var LoggerInterface|MockObject */
     private LoggerInterface|MockObject $logger;
 
@@ -45,6 +49,7 @@ class ConfigProviderTest extends TestCase
         $this->checkoutSession      = $this->createMock(CheckoutSession::class);
         $this->ineligibilityChecker = $this->createMock(IneligibilityChecker::class);
         $this->backorderChecker     = $this->createMock(BackorderChecker::class);
+        $this->salableStockChecker  = $this->createMock(SalableStockChecker::class);
         $this->logger               = $this->createMock(LoggerInterface::class);
 
         $quote = $this->createMock(Quote::class);
@@ -56,6 +61,7 @@ class ConfigProviderTest extends TestCase
             $this->checkoutSession,
             $this->ineligibilityChecker,
             $this->backorderChecker,
+            $this->salableStockChecker,
             $this->logger
         );
     }
@@ -165,5 +171,35 @@ class ConfigProviderTest extends TestCase
         $this->assertSame('info', $cfg['nextDayEligibility']['noticeStyle']);
         $this->assertSame('Heads up', $cfg['nextDayEligibility']['noticeTitle']);
         $this->assertSame('Mixed cart', $cfg['nextDayEligibility']['noticeMessage']);
+    }
+
+    public function testRestrictedWhenSalableShortfallFires(): void
+    {
+        $this->config->method('isEnabled')->willReturn(true);
+        $this->config->method('isShowNotice')->willReturn(true);
+        $this->config->method('getShippingMethodCodes')->willReturn([]);
+        $this->config->method('isRestrictExpressOnBackorder')->willReturn(false);
+        $this->config->method('isRestrictOnInsufficientSalable')->willReturn(true);
+        $this->salableStockChecker->method('hasShortfall')->willReturn(true);
+
+        $cfg = $this->provider->getConfig();
+
+        $this->assertTrue($cfg['nextDayEligibility']['isRestricted']);
+    }
+
+    public function testSalableCheckerSkippedWhenToggleOff(): void
+    {
+        $this->config->method('isEnabled')->willReturn(true);
+        $this->config->method('isShowNotice')->willReturn(true);
+        $this->config->method('getShippingMethodCodes')->willReturn([]);
+        $this->config->method('isRestrictExpressOnBackorder')->willReturn(false);
+        $this->config->method('isRestrictOnInsufficientSalable')->willReturn(false);
+
+        // Toggle off — the checker must never be consulted.
+        $this->salableStockChecker->expects($this->never())->method('hasShortfall');
+
+        $cfg = $this->provider->getConfig();
+
+        $this->assertFalse($cfg['nextDayEligibility']['isRestricted']);
     }
 }

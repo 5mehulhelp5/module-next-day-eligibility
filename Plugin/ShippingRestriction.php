@@ -7,6 +7,7 @@ namespace ETechFlow\NextDayEligibility\Plugin;
 use ETechFlow\NextDayEligibility\Model\BackorderChecker;
 use ETechFlow\NextDayEligibility\Model\Config;
 use ETechFlow\NextDayEligibility\Model\IneligibilityChecker;
+use ETechFlow\NextDayEligibility\Model\SalableStockChecker;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Address\Rate;
 use Psr\Log\LoggerInterface;
@@ -30,12 +31,14 @@ class ShippingRestriction
      * @param Config               $config
      * @param IneligibilityChecker $ineligibilityChecker
      * @param BackorderChecker     $backorderChecker
+     * @param SalableStockChecker  $salableStockChecker
      * @param LoggerInterface      $logger
      */
     public function __construct(
         private readonly Config $config,
         private readonly IneligibilityChecker $ineligibilityChecker,
         private readonly BackorderChecker $backorderChecker,
+        private readonly SalableStockChecker $salableStockChecker,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -74,6 +77,17 @@ class ShippingRestriction
                 $ccBlockedByLocalStock = $this->ineligibilityChecker->hasItemsWithoutLocalStock($items);
             }
 
+            // v1.9.0: reservation-aware salable-stock shortfall. When any cart
+            // line requests more units than are actually salable (stock minus
+            // MSI reservations), pull BOTH next-day and Click & Collect so
+            // checkout falls back to a realistic speed. Gated behind its own
+            // toggle (default on); the hasShortfall() call is skipped entirely
+            // when the toggle is off. Fetched here so both whitelist and
+            // blacklist branches below can reuse the next-day code list.
+            $nextDayCodes = $this->config->getShippingMethodCodes();
+            $hasSalableShortfall = $this->config->isRestrictOnInsufficientSalable()
+                && $this->salableStockChecker->hasShortfall($items);
+
             // Whitelist mode (v1.4.3+): if the merchant has populated the
             // Standard Methods list AND the cart has ineligible items, switch
             // from blacklist semantics ("remove next-day codes") to whitelist
@@ -105,6 +119,16 @@ class ShippingRestriction
                     $whitelisted = $this->filterRates($whitelisted, array_unique($ccCodes));
                 }
 
+                // Layer the v1.9.0 salable-shortfall rule on top too — pull any
+                // next-day / pickup codes that survived the whitelist when a
+                // line can't be met from the shelf.
+                if ($hasSalableShortfall) {
+                    $shortfallCodes = array_values(array_unique(array_merge($nextDayCodes, $ccCodes)));
+                    if (!empty($shortfallCodes)) {
+                        $whitelisted = $this->filterRates($whitelisted, $shortfallCodes);
+                    }
+                }
+
                 if (empty($whitelisted)) {
                     $this->logger->warning(
                         'ETechFlow_NextDayEligibility: Whitelist mode left no methods available — '
@@ -121,9 +145,8 @@ class ShippingRestriction
             // Blacklist mode (default, original v1.0 behaviour):
             $codesToRemove = [];
 
-            // Rule 1: next-day eligibility
-            $nextDayCodes = $this->config->getShippingMethodCodes();
-            if (!empty($nextDayCodes) && $hasIneligible) {
+            // Rule 1: next-day eligibility — or a salable-stock shortfall (v1.9.0).
+            if (!empty($nextDayCodes) && ($hasIneligible || $hasSalableShortfall)) {
                 $codesToRemove = array_merge($codesToRemove, $nextDayCodes);
             }
 
@@ -141,7 +164,8 @@ class ShippingRestriction
             // whenever any cart item has no local stock. Independent of the
             // next-day rules because a product can be next-day-eligible via
             // a drop-ship supplier yet still have no local stock for pickup.
-            if ($ccBlockedByLocalStock) {
+            // v1.9.0: also pull pickup when a line exceeds salable stock.
+            if (($ccBlockedByLocalStock || $hasSalableShortfall) && !empty($ccCodes)) {
                 $codesToRemove = array_merge($codesToRemove, $ccCodes);
             }
 

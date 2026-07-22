@@ -4,6 +4,39 @@ All notable changes to this module. Adheres to [Semantic Versioning](https://sem
 
 ---
 
+## [1.9.0] — Reservation-aware stock check (MSI salable quantity)
+
+The checkout stock check is now reservation-aware. Previously eligibility and
+the Click & Collect / backorder rules read the **legacy** stock quantity
+(`cataloginventory_stock_item.qty`), which does **not** subtract MSI
+reservations — so next-day and pickup could be offered for units that were
+physically present but already reserved by other unshipped orders (or when a
+line asked for more than was actually available). The order would go through
+promising a delivery speed the shelf couldn't meet.
+
+### Added
+
+- **`Model/SalableStockChecker`** — compares each cart line's requested quantity
+  against the MSI **salable** quantity (`GetProductSalableQtyInterface` = stock −
+  reservations − out-of-stock threshold). When any line can't be fully satisfied
+  from the shelf, the shipping-restriction plugin pulls **both** the Express /
+  Next-Day methods and the Click & Collect methods, so checkout falls back to a
+  standard/tracked option (the short units ship when the backorder arrives).
+- **New setting** *General → "Restrict when salable stock is insufficient"*
+  (`general/restrict_insufficient_salable`, **default Yes**). Turn it off to keep
+  the previous behaviour.
+- The Luma (`ConfigProvider`) and Hyvä (`HyvaCheckoutNotice`) checkout notices
+  fire on the same condition, so the banner stays in sync with the restriction.
+
+### Requirements
+
+- Adds a dependency on `magento/module-inventory-sales-api` (MSI), which ships
+  with Adobe Commerce and Magento Open Source 2.4.x by default. If a SKU isn't
+  assigned to a stock (or MSI is disabled at runtime), the line is treated as
+  satisfiable and checkout is never blocked.
+
+---
+
 ## [1.8.1] — 2026-07-03 — Security: portal-only licensing (removes forgeable key path)
 
 Closes a licensing bypass. Previous versions shipped the HMAC signing secret

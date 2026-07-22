@@ -28,6 +28,7 @@ class ConfigProvider implements ConfigProviderInterface
      * @param CheckoutSession      $checkoutSession
      * @param IneligibilityChecker $ineligibilityChecker
      * @param BackorderChecker     $backorderChecker
+     * @param SalableStockChecker  $salableStockChecker
      * @param LoggerInterface      $logger
      */
     public function __construct(
@@ -35,6 +36,7 @@ class ConfigProvider implements ConfigProviderInterface
         private readonly CheckoutSession $checkoutSession,
         private readonly IneligibilityChecker $ineligibilityChecker,
         private readonly BackorderChecker $backorderChecker,
+        private readonly SalableStockChecker $salableStockChecker,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -68,6 +70,15 @@ class ConfigProvider implements ConfigProviderInterface
                 && $this->config->isRestrictExpressOnBackorder()
                 && !empty($this->config->getBackorderExpressMethodCodes())
                 && $this->backorderChecker->hasBackorderItems($items)
+            ) {
+                $isRestricted = true;
+            }
+
+            // Rule 3 (v1.9.0): salable-stock shortfall — a line requests more
+            // than is salable from the shelf (reservation-aware).
+            if (!$isRestricted
+                && $this->config->isRestrictOnInsufficientSalable()
+                && $this->salableStockChecker->hasShortfall($items)
             ) {
                 $isRestricted = true;
             }

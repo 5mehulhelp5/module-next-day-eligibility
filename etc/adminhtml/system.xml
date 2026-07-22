@@ -89,6 +89,29 @@
                         whether a checkout issue is caused by this module.
                     ]]></comment>
                 </field>
+                <field id="restrict_insufficient_salable"
+                       translate="label comment tooltip"
+                       type="select"
+                       sortOrder="15"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Restrict when salable stock is insufficient</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Hide next-day and Click &amp; Collect when a cart line asks for more units than are actually on the shelf (stock minus reservations).</tooltip>
+                    <comment><![CDATA[
+                        <strong>Yes</strong> (default) = for every cart line, the requested quantity is
+                        checked against the real <strong>salable</strong> quantity — physical stock
+                        <em>minus</em> units already reserved by other unshipped orders. If any line can't be
+                        fully met from the shelf, the <strong>Express / Next-Day</strong> methods above and the
+                        <strong>Click &amp; Collect</strong> methods are hidden, so the order falls back to a
+                        standard/tracked option that matches reality (the short units ship when they arrive).<br/><br/>
+                        <strong>No</strong> = only the eligibility flag and the other rules apply; a line that
+                        exceeds available salable stock can still be offered next-day / pickup.<br/><br/>
+                        Requires Magento's Multi-Source Inventory (MSI), which ships with Adobe Commerce and
+                        Magento Open Source 2.4.x by default.
+                    ]]></comment>
+                </field>
                 <field id="shipping_method_codes"
                        translate="label comment tooltip"
                        type="multiselect"
